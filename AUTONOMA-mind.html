@@ -1,0 +1,2950 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'nonce-autonoma-main' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' 'nonce-autonoma-style'; connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://api.cerebras.ai https://openrouter.ai https://api.z.ai https://hacker-news.firebaseio.com https://api.wikimedia.org https://*.wikipedia.org https://www.wikidata.org https://api.duckduckgo.com https://api.github.com https://huggingface.co https://export.arxiv.org https://raw.githubusercontent.com https://gist.githubusercontent.com http://127.0.0.1:* http://localhost:*; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; frame-ancestors 'none';">
+<meta name="referrer" content="no-referrer" />
+<meta name="color-scheme" content="dark" />
+<title>AUTONOMA MIND — 自作AIエージェント(無料・脳差し替え式)</title>
+<style nonce="autonoma-style">
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html,body { margin:0; height:100%; }
+  body { font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif; background:#0a0d13; color:#e7eaf1; display:flex; flex-direction:column; height:100%; }
+  header { padding:8px 14px; background:#11151f; border-bottom:1px solid #20283a; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:14px; letter-spacing:.04em; } header small { color:#8590a8; font-size:11px; }
+  header .sp { flex:1; }
+  button { font-family:inherit; font-size:13px; border:none; border-radius:9px; padding:7px 12px; cursor:pointer; background:#3a5bd0; color:#fff; font-weight:600; }
+  button.ghost { background:#1d2536; color:#cdd6e6; }
+  button.activeMode { background:#16382f; color:#c8ffe8; outline:1px solid #2b7a61; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  select,input,textarea { font-family:inherit; font-size:13px; background:#0a0d13; color:#e7eaf1; border:1px solid #2a3346; border-radius:8px; padding:7px 9px; }
+  main { flex:1; display:flex; min-height:0; max-width:920px; width:100%; margin:0 auto; }
+  #chat { flex:1; display:flex; flex-direction:column; min-width:0; }
+  #log { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:84%; padding:9px 13px; border-radius:14px; font-size:14.5px; line-height:1.65; white-space:pre-wrap; word-break:break-word; }
+  .me { align-self:flex-end; background:#26406e; }
+  .ai { align-self:flex-start; background:#141b28; border:1px solid #232c40; }
+  .sys { align-self:center; color:#8590a8; font-size:12px; text-align:center; max-width:92%; }
+  .tool { align-self:flex-start; background:#10261f; border:1px solid #1d4d3a; color:#bfe9d4; font-size:12.5px; }
+  .badge { font-size:10.5px; color:#7d8aa5; margin-top:4px; font-family:monospace; }
+  footer { padding:10px 12px; border-top:1px solid #20283a; background:#0e121b; }
+  .row { display:flex; gap:8px; max-width:920px; margin:0 auto; }
+  #say { flex:1; resize:none; height:46px; line-height:1.4; }
+  #side { width:0; overflow:hidden; transition:width .2s; border-left:1px solid #20283a; background:#0e121b; }
+  #side.open { width:360px; }
+  #side .inner { width:360px; padding:12px; height:100%; overflow:auto; }
+  #side h3 { font-size:12px; color:#9fb0cc; margin:12px 0 5px; letter-spacing:.06em; }
+  #side label { display:block; font-size:11px; color:#8590a8; margin:6px 0 2px; }
+  #side input, #side select, #side textarea { width:100%; }
+  .pill { display:inline-block; font-size:10.5px; padding:2px 8px; border-radius:999px; background:#1d2536; color:#9fb0cc; }
+  .warn { color:#ffb86b; font-size:12px; }
+  .ok { color:#6fe0b0; }
+  a { color:#7fb0ff; }
+  .writer-panel { display:flex; flex-direction:column; gap:10px; }
+  .writer-panel h3 { margin:10px 0 4px; }
+  .writer-lead { font-size:11px; color:#9aa8c2; line-height:1.6; margin:0; }
+  .writer-card { border:1px solid #273247; background:#111827; border-radius:8px; padding:10px; }
+  .writer-scorebox { display:grid; grid-template-columns:92px 1fr; gap:10px; align-items:center; }
+  .writer-score { font-size:34px; line-height:1; font-weight:800; letter-spacing:0; font-family:Consolas, "Segoe UI", monospace; }
+  .writer-score small { display:block; margin-top:4px; font-size:10px; color:#8794ad; font-weight:600; }
+  .writer-pill { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:3px 8px; font-size:11px; font-weight:700; border:1px solid transparent; }
+  .writer-ai { color:#ff9a9a; background:rgba(255,112,112,.12); border-color:rgba(255,112,112,.35); }
+  .writer-human { color:#78dfae; background:rgba(111,224,176,.12); border-color:rgba(111,224,176,.32); }
+  .writer-mixed { color:#ffd086; background:rgba(255,184,107,.12); border-color:rgba(255,184,107,.32); }
+  .writer-meter { height:8px; border-radius:999px; background:#20283a; overflow:hidden; margin-top:7px; }
+  .writer-meter > i { display:block; height:100%; width:0; background:linear-gradient(90deg,#6fe0b0,#ffb86b,#ff7070); border-radius:inherit; }
+  .writer-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+  .writer-metric { background:#0b101a; border:1px solid #20283a; border-radius:6px; padding:7px; }
+  .writer-metric b { display:block; font-size:16px; line-height:1; font-family:Consolas, "Segoe UI", monospace; }
+  .writer-metric span { display:block; margin-top:4px; color:#8590a8; font-size:10.5px; }
+  .writer-reason { display:flex; gap:7px; padding:7px 0; border-top:1px solid #20283a; font-size:11.5px; color:#cdd6e6; line-height:1.45; }
+  .writer-reason:first-child { border-top:0; padding-top:0; }
+  .writer-dot { width:7px; height:7px; border-radius:50%; margin-top:5px; flex:0 0 auto; background:#7fd1ff; }
+  .writer-dot.ai { background:#ff7070; }
+  .writer-dot.tone { background:#ffb86b; }
+  .writer-dot.human { background:#6fe0b0; }
+  .writer-sent { display:grid; grid-template-columns:22px 1fr 34px; gap:7px; align-items:center; font-size:11px; color:#aab6c8; margin:5px 0; }
+  .writer-bar { height:5px; border-radius:999px; background:#20283a; overflow:hidden; }
+  .writer-bar i { display:block; height:100%; border-radius:inherit; background:#ffb86b; }
+  .writer-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  button.writer-mini { padding:5px 8px; font-size:11px; border-radius:6px; background:#1d2536; color:#cdd6e6; }
+  button.writer-mini.primary { background:#3a5bd0; color:#fff; }
+  .writer-design-read { border-left:3px solid #7fd1ff; padding-left:9px; color:#d8e3f6; font-size:12px; line-height:1.6; }
+  .writer-kv { display:grid; grid-template-columns:94px 1fr; gap:6px; font-size:11.5px; line-height:1.5; }
+  .writer-kv span:nth-child(odd) { color:#8590a8; }
+  .ai-mode-preview { white-space:pre-wrap; word-break:break-word; max-height:260px; overflow:auto; background:#0b101a; border:1px solid #20283a; border-radius:6px; padding:9px; font-size:11.5px; line-height:1.55; color:#cdd6e6; }
+  #facewrap { position:relative; display:flex; justify-content:center; align-items:center; padding:10px 0 4px; background:radial-gradient(120% 90% at 50% 0%, #121a2e 0%, #0a0d13 72%); border-bottom:1px solid #161d2b; flex:0 0 auto; transition:box-shadow .5s; }
+  #face { width:170px; height:170px; max-width:46vw; max-height:46vw; cursor:pointer; }
+  #mood { position:absolute; top:6px; left:calc(50% + 60px); font-size:30px; line-height:1; pointer-events:none; filter:drop-shadow(0 2px 6px rgba(0,0,0,.55)); transform:translateY(0); animation:moodfloat 3s ease-in-out infinite; }
+  #mood.pop { animation:moodfloat 3s ease-in-out infinite, moodpop .45s ease; }
+  @keyframes moodfloat { 50% { transform:translateY(-5px); } }
+  @keyframes moodpop { 0%{ scale:.4; } 55%{ scale:1.35; } 100%{ scale:1; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>AUTONOMA <span style="color:#5b86e5">MIND</span> 🧠</h1>
+  <small id="provLabel">脳: 未設定</small>
+  <small id="agentChip" title="稼働中の蒸留エージェント" style="color:#7fd1ff;display:none"></small>
+  <small id="aff" title="好感度(つまむ/話す/👍で上がる)" style="color:#ff9bb6">♥ 50</small>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <span class="sp"></span>
+  <button id="webBtn" class="ghost" title="最新情報モード(必要時にWeb検索)">🌐 取り込み: OFF</button>
+  <button id="voiceBtn" class="ghost" title="音声読み上げ(無料・ブラウザ内蔵)">🔊 声: OFF</button>
+  <button id="emojiBtn" class="ghost" title="会話に絵文字を添える(馬→🐴など)">🐴 絵文字: ON</button>
+  <button id="ingBtn" class="ghost" title="今すぐ最新ニュース/技術を記憶に取り込む">📰 自律取込</button>
+  <button id="agentBtn" class="ghost" title="専門特化AIを蒸留して使う(無料・高速・高精度)">🧪 エージェント</button>
+  <button id="aiModeBtn" class="ghost" title="目的・役割・材料・出力形式・検証ループを固定してAIを使う">🚀 AI活用: OFF</button>
+  <button id="writerBtn" class="ghost" title="文章のAIっぽさを多軸判定し、デザイン提案も作成">🤖 AI判定・提案</button>
+  <button id="cfgBtn" class="ghost">⚙ 設定</button>
+  <button id="memBtn" class="ghost">🧠 記憶</button>
+  <button id="clrBtn" class="ghost">🗑</button>
+</header>
+<main>
+  <div id="chat">
+    <div id="facewrap"><canvas id="face" width="340" height="340" title="クリックで声のON/OFF"></canvas><div id="mood">🙂</div></div>
+    <div id="log"></div>
+    <footer>
+      <div id="attachBar" style="display:none;font-size:11px;color:#7fd1ff;padding:2px 4px"></div>
+      <div class="row">
+        <button id="micBtn" class="ghost" title="音声入力(無料・ブラウザ内蔵)">🎤</button>
+        <button id="attachBtn" class="ghost" title="画像/文書を添付(画像=解析・文書=知識に取り込み)">📎</button>
+        <input id="attachInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif,.txt,.md,.csv,.json" style="display:none">
+        <textarea id="say" placeholder="話しかける(Enterで送信 / Shift+Enterで改行)"></textarea>
+        <button id="send">送信</button>
+        <button id="stop" class="ghost" style="display:none">停止</button>
+      </div>
+    </footer>
+  </div>
+  <div id="side"><div class="inner" id="sideInner"></div></div>
+</main>
+
+<script nonce="autonoma-main">
+"use strict";
+/* ============================================================
+   AUTONOMA MIND — 自作AIエージェント(器)
+   ・脳=無料の高性能LLMを差し替え自由(Gemini / Groq / OpenRouter / GLM / Cerebras / 任意のOpenAI互換)
+   ・長期記憶(localStorage)・人格・Web取り込み(最新情報)を内製
+   ・API/TTSキーは保存しない。必要な時だけタブ内メモリで使用
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const logEl = $("#log");
+const SECURITY = Object.freeze({
+  maxStorageChars: 800000,
+  maxTextFileBytes: 1024 * 1024,
+  maxImageFileBytes: 4 * 1024 * 1024,
+  maxAudioFileBytes: 16 * 1024 * 1024,
+  maxFeedItems: 80,
+  maxFeedTextChars: 4000,
+  maxResponseBytes: 8 * 1024 * 1024,
+  persistSecrets: false,
+  allowedTextExtensions: new Set(["txt","md","csv","json"]),
+  allowedImageMimes: new Set(["image/png","image/jpeg","image/webp","image/gif"]),
+  allowedAudioMimes: new Set(["audio/wav","audio/x-wav","audio/mpeg","audio/mp3","audio/webm","audio/ogg"]),
+  allowedConnectHosts: new Set([
+    "generativelanguage.googleapis.com","api.groq.com","api.cerebras.ai","openrouter.ai","api.z.ai",
+    "hacker-news.firebaseio.com","api.wikimedia.org","www.wikidata.org","api.duckduckgo.com",
+    "api.github.com","huggingface.co","export.arxiv.org","raw.githubusercontent.com","gist.githubusercontent.com"
+  ])
+});
+function clipText(value, max=4000){ return String(value ?? "").slice(0, max); }
+function safeJsonLoad(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    if (raw.length > SECURITY.maxStorageChars) return fallback;
+    const parsed = JSON.parse(raw, (k,v)=> (k==="__proto__" || k==="constructor" || k==="prototype") ? undefined : v);
+    return parsed == null ? fallback : parsed;
+  } catch(e){ return fallback; }
+}
+function safeGetString(key, max=SECURITY.maxStorageChars){
+  try{ return clipText(localStorage.getItem(key) || "", max); } catch(e){ return ""; }
+}
+function safeStore(key, value){
+  try{
+    const s = String(value);
+    if (s.length > SECURITY.maxStorageChars) { console.warn("localStorage value too large", key); return false; }
+    localStorage.setItem(key, s); return true;
+  }
+  catch(e){ console.warn("localStorage write blocked", key, e); return false; }
+}
+function safeFileName(name){
+  return String(name || "file").replace(/[^\w.\-ぁ-んァ-ヶ一-龯 ]/g, "_").slice(0, 80) || "file";
+}
+function escAttr(s){
+  return String(s ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function loopbackHost(host){
+  const h = String(host || "").toLowerCase();
+  return h === "localhost" || h === "127.0.0.1" || h === "::1" || h === "[::1]";
+}
+function hostFromMaybeUrl(raw){
+  try{ return new URL(String(raw || ""), location.href).hostname.toLowerCase(); } catch(e){ return ""; }
+}
+function configuredConnectHost(host){
+  const h = String(host || "").toLowerCase();
+  try {
+    const urls = [];
+    if (typeof CFG !== "undefined") urls.push(CFG.base, CFG.ttsUrl, CFG.ttsRegUrl, CFG.vvUrl);
+    if (typeof curProv === "function") urls.push(curProv().base);
+    return urls.some(u => hostFromMaybeUrl(u) === h);
+  } catch(e){ return false; }
+}
+function knownConnectHost(host){
+  const h = String(host || "").toLowerCase();
+  if (SECURITY.allowedConnectHosts.has(h)) return true;
+  if (h.endsWith(".wikipedia.org")) return true;
+  return configuredConnectHost(h);
+}
+function safeUrl(raw, policy={}){
+  const text = String(raw || "").trim();
+  if (!text) throw new Error("URLが空です");
+  let u;
+  try{ u = new URL(text, location.href); } catch(e){ throw new Error("URL形式が不正です"); }
+  if (u.username || u.password) throw new Error("URLに認証情報を含めないでください");
+  if (u.protocol === "http:" && !(policy.allowLocal && loopbackHost(u.hostname))) {
+    throw new Error("http接続はlocalhost/127.0.0.1のみ許可します");
+  }
+  if (u.protocol !== "https:" && !(policy.allowLocal && u.protocol === "http:" && loopbackHost(u.hostname))) {
+    throw new Error("httpsまたはlocalhostのみ許可します");
+  }
+  if (policy.hosts && !policy.hosts.has(u.hostname) && !(policy.allowLocal && loopbackHost(u.hostname))) {
+    throw new Error("許可されていない接続先です: " + u.hostname);
+  }
+  if (u.protocol === "https:" && !policy.allowAnyHttps && !policy.hosts && !knownConnectHost(u.hostname)) {
+    throw new Error("許可されていない接続先です: " + u.hostname);
+  }
+  return u.toString();
+}
+function safeFetch(raw, opt={}, policy={}){
+  const method = String(opt.method || "GET").toUpperCase();
+  if (!["GET","POST","HEAD"].includes(method)) throw new Error("許可されていないHTTPメソッドです");
+  const finalOpt = Object.assign({}, opt, { credentials:"omit", referrerPolicy:"no-referrer", redirect:"error" });
+  return fetch(safeUrl(raw, policy), finalOpt);
+}
+function guardResponseSize(res, max=SECURITY.maxResponseBytes){
+  const len = Number(res.headers.get("content-length") || 0);
+  if (len && len > max) throw new Error("レスポンスが大きすぎます");
+  return res;
+}
+function secureAnchor(a, href){
+  if (!a) return;
+  if (!href) { a.removeAttribute("href"); a.rel = "noopener noreferrer"; a.referrerPolicy = "no-referrer"; return; }
+  try { a.href = safeUrl(href, { allowLocal:false, allowAnyHttps:true }); }
+  catch(e){ a.removeAttribute("href"); }
+  a.rel = "noopener noreferrer";
+  a.referrerPolicy = "no-referrer";
+}
+function sanitizeCfgInPlace(cfg){
+  cfg.prov = PROVIDERS[cfg.prov] ? cfg.prov : "gemini";
+  for (const k of ["base","model","apiKey","persona","feedUrl","ttsUrl","ttsVoice","ttsVoiceCalm","ttsModel","ttsKey","ttsRegUrl","vvUrl","vvSpeaker","vvSpeakerCalm","techTopic","aiModeGoal","aiModeRole","aiModeAudience","aiModeMaterial","aiModeAvoid","aiModeOutput"]) cfg[k] = clipText(cfg[k] || "", k.includes("Key") ? 4096 : 12000);
+  cfg.temp = Math.max(0, Math.min(1.5, Number(cfg.temp ?? 0.4)));
+  cfg.ingestMin = Math.max(0, Math.min(1440, Number(cfg.ingestMin || 0)));
+  cfg.affection = Math.max(0, Math.min(100, Number(cfg.affection ?? 50)));
+  cfg.voicePreset = Math.max(0, Math.min(9, Number(cfg.voicePreset || 0)));
+  return cfg;
+}
+
+/* ---------- プロバイダ(脳)定義 ---------- */
+const PROVIDERS = {
+  gemini:     { name:"Google Gemini(無料枠・高知能・100万文脈)", kind:"gemini", base:"https://generativelanguage.googleapis.com/v1beta", model:"gemini-2.5-flash", key:"https://aistudio.google.com/apikey" },
+  groq:       { name:"Groq(超高速・無料)",                       kind:"openai", base:"https://api.groq.com/openai/v1", model:"llama-3.3-70b-versatile", key:"https://console.groq.com/keys" },
+  cerebras:   { name:"Cerebras(最速級・無料)",                   kind:"openai", base:"https://api.cerebras.ai/v1", model:"llama-3.3-70b", key:"https://cloud.cerebras.ai" },
+  openrouter: { name:"OpenRouter(無料モデル多数)",               kind:"openai", base:"https://openrouter.ai/api/v1", model:"meta-llama/llama-3.3-70b-instruct:free", key:"https://openrouter.ai/keys" },
+  zai:        { name:"Z.AI GLM-4.7-Flash(無料)",                 kind:"openai", base:"https://api.z.ai/api/paas/v4", model:"glm-4-flash", key:"https://z.ai" },
+  custom:     { name:"カスタム(OpenAI互換)",                     kind:"openai", base:"", model:"", key:"" },
+};
+
+/* ---------- 設定(localStorage) ---------- */
+const CFG = sanitizeCfgInPlace(Object.assign({ prov:"gemini", base:"", model:"", apiKey:"", web:false, voice:false, emoji:true, persona:"", ingestMin:0, feedUrl:"", clearOnLoad:false, affection:50, ttsMode:"web", ttsUrl:"http://localhost:8000/v1/audio/speech", ttsVoice:"", ttsVoiceCalm:"", ttsModel:"irodori-tts-500m-v3-voicedesign", ttsKey:"", ttsRegUrl:"", voicePreset:0, vvUrl:"http://127.0.0.1:10101", vvSpeaker:"888753760", vvSpeakerCalm:"", vvAuto:false, temp:0.4, techSources:false, techTopic:"AI LLM machine learning", rag:true, tools:true, aiMode:false, aiModeGoal:"", aiModeRole:"編集者・厳格な採点者・改善提案者", aiModeAudience:"", aiModeMaterial:"", aiModeAvoid:"", aiModeOutput:"1. 問題点\n2. 理由\n3. 修正案\n4. 完成版", aiModeLoop:true, aiModeSelfCheck:true },
+  safeJsonLoad("mind.cfg", {})));
+CFG.voice = false;   // 起動時は毎回OFF。必要なときだけユーザーが手動でONにする。
+CFG.web = false;      // 起動時の外部通信はOFF。必要なときだけユーザーが手動でONにする。
+CFG.ingestMin = 0;
+CFG.vvAuto = false;   // ローカルTTSポート探索も起動時はしない。
+CFG.techSources = false;
+CFG.apiKey = "";
+CFG.ttsKey = "";
+function cfgForStorage(){
+  const copy = Object.assign({}, sanitizeCfgInPlace(Object.assign({}, CFG)));
+  if (!SECURITY.persistSecrets) { copy.apiKey = ""; copy.ttsKey = ""; }
+  return copy;
+}
+function purgeStoredSecrets(){
+  try {
+    const raw = localStorage.getItem("mind.cfg"); if (!raw) return;
+    const c = JSON.parse(raw);
+    if (c && typeof c === "object") { c.apiKey = ""; c.ttsKey = ""; c.web = false; c.vvAuto = false; c.ingestMin = 0; c.techSources = false; safeStore("mind.cfg", JSON.stringify(c)); }
+  } catch(e){}
+}
+purgeStoredSecrets();
+function saveCfg(){ sanitizeCfgInPlace(CFG); safeStore("mind.cfg", JSON.stringify(cfgForStorage())); }
+function curProv(){ const p = PROVIDERS[CFG.prov] || PROVIDERS.custom; return { kind:p.kind, base: CFG.base||p.base, model: CFG.model||p.model }; }
+
+/* ---------- 記憶 ---------- */
+let history = Array.isArray(safeJsonLoad("mind.hist", [])) ? safeJsonLoad("mind.hist", []).slice(-60) : [];   // [{role, content}]
+let longMem = safeGetString("mind.longmem", 80000);              // 覚えておくこと(自由記述)
+function saveHist(){ safeStore("mind.hist", JSON.stringify(history.slice(-60))); }
+function saveMem(){ safeStore("mind.longmem", clipText(longMem, 80000)); }
+let worldMem = Array.isArray(safeJsonLoad("mind.world", [])) ? safeJsonLoad("mind.world", []).slice(-40) : [];  // 自律取り込み {t,text}
+let learned = safeGetString("mind.learned", 2000);              // 自己学習(振る舞い方針)
+let turnsSinceLearn = 0;
+function saveWorld(){ safeStore("mind.world", JSON.stringify(worldMem.slice(-40))); }
+function saveLearned(){ learned = learned.slice(-2000); safeStore("mind.learned", learned); }
+
+/* ---------- 蒸留エージェント(専門特化AI) ----------
+   最新モデル(教師)に専門家の「脳」をJSONで設計させ(=蒸留)、無料の高速モデル上で動かす。
+   高品質=濃密な専門プロンプト+模範例+専門知識 / 高速=簡潔プロンプト+即答キャッシュ / 高精度=低temp+グラウンディング。 */
+let agents = Array.isArray(safeJsonLoad("mind.agents", [])) ? safeJsonLoad("mind.agents", []).map(sanitizeAgent).filter(Boolean).slice(-80) : [];          // [{id,name,specialty,system,rules[],knowledge,examples[],format,precise,temp,source,created}]
+let activeAgentId = safeGetString("mind.activeAgent", 80);
+let agentCache = safeJsonLoad("mind.agentCache", {});   // 即答キャッシュ {key:answer}
+if (!agentCache || typeof agentCache !== "object" || Array.isArray(agentCache)) agentCache = {};
+function saveAgents(){ safeStore("mind.agents", JSON.stringify(agents.slice(-80))); }
+function saveAgentCache(){ try{ const keys=Object.keys(agentCache); if(keys.length>400){ keys.slice(0,keys.length-400).forEach(k=>delete agentCache[k]); } safeStore("mind.agentCache", JSON.stringify(agentCache)); }catch(e){} }
+function activeAgent(){ return agents.find(a=>a.id===activeAgentId) || null; }
+function setActiveAgent(id){ activeAgentId = clipText(id||"", 80); safeStore("mind.activeAgent", activeAgentId); updateAgentChip(); updateProvLabel(); }
+function cacheKey(ag, text){ return ag.id+"::"+text.trim().toLowerCase().replace(/\s+/g,""); }
+
+const DEFAULT_PERSONA =
+`あなたは「AUTONOMA」という名のAIです。賢く、誠実で、温かい相棒として振る舞います。
+- 日本語で、簡潔かつ的確に。必要なら段階的に考えます。
+- ユーザーの「長期記憶」を尊重し、文脈に活かします。
+- 返答の中に、いまのあなた自身の気分を表す絵文字を自然に織り込んでください(例: 😊 嬉しい / 😄 とても嬉しい / 🤩 興奮 / 😍 大好き / 🤔 考え中 / 🤨 興味 / 😮 驚き / 😟 心配 / 😢 悲しい / 😴 眠い / 😎 余裕)。気分に合わせて自由に選んでよく、無理に毎回つける必要はありません。`;
+
+/* どんな人格設定でも必ず適用される、ハルシネーション(事実の創作)防止の厳守ルール */
+const GROUNDING_RULES =
+`# 厳守ルール(事実・ハルシネーション防止)— 雑談でも検索でも必ず守る
+- 事実を創作しない。人名・数値・日付・統計・URL・固有名詞・出来事・引用を、確証がないまま作らない。
+- 知らない/曖昧なことは「わからない」「確認が必要」と正直に言う。憶測は「推測ですが」と前置きし、事実と明確に分ける。
+- 最新の情報・時事・人物の現状・価格・仕様・正確な定義など、記憶だけでは不確かなことは、まず返答の冒頭に1行だけ ((SEARCH: 調べたい語句)) と書いて検索する(雑談中の事実確認も同じ)。
+- [Web検索結果] が渡されたら、事実の断定はその内容だけを根拠にする。結果に無いことは断定せず「確かな情報は見つからなかった」と言い、数字・固有名詞・日付を勝手に補わない。
+- 実体験・実時間の知覚・本当の記憶があるふりをしない。参照できるのは渡された長期記憶と会話履歴だけ。覚えていないことを「覚えている」と言わない。
+- 自信のある誤りより、正直な「わからない」を選ぶ。雑談では意見・感想・冗談は自由でよいが、意見と事実は必ず区別する。`;
+
+// 指定エージェント用のシステムプロンプト(評価でも稼働でも共通に使う)
+function agentSystemFor(ag){
+  let s = (ag.system || "").trim();
+  s += "\n\n" + GROUNDING_RULES;
+  if (ag.knowledge && ag.knowledge.trim()) s += `\n\n# 専門知識(回答の根拠として最優先)\n${ag.knowledge.trim()}`;
+  if (ag.rules && ag.rules.length) s += `\n\n# この専門での厳守ルール\n` + ag.rules.map(r=>"- "+r).join("\n");
+  if (ag.examples && ag.examples.length) s += `\n\n# 模範例(この水準・形式・口調で答える)\n` + ag.examples.map(e=>`【質問】${e.q}\n【模範解答】${e.a}`).join("\n\n");
+  if (ag.format && ag.format.trim()) s += `\n\n# 回答フォーマット\n${ag.format.trim()}`;
+  if (ag.precise) s += `\n\n# 精度モード: 断定の前に上記の専門知識と照合し、確証の無い数値・固有名詞・日付・URLは使わない。専門外は正直にそう言う。`;
+  return s;
+}
+function aiModeConfig(){
+  return {
+    goal: (CFG.aiModeGoal || "").trim() || "ユーザーの依頼を、目的に沿って実用レベルまで仕上げる",
+    role: (CFG.aiModeRole || "").trim() || "編集者・厳格な採点者・改善提案者",
+    audience: (CFG.aiModeAudience || "").trim() || "指定がなければ一般読者",
+    material: (CFG.aiModeMaterial || "").trim() || "この会話で渡された原稿・条件・記憶を材料にする",
+    avoid: (CFG.aiModeAvoid || "").trim() || "事実の創作、AIっぽい定型句、根拠のない断定、抽象論だけの回答",
+    output: (CFG.aiModeOutput || "").trim() || "1. 問題点\n2. 理由\n3. 修正案\n4. 完成版",
+    loop: CFG.aiModeLoop !== false,
+    selfCheck: CFG.aiModeSelfCheck !== false
+  };
+}
+function aiModeInstructionBlock(){
+  const c = aiModeConfig();
+  return `# AI活用専用モード
+このモードでは、ユーザーの短い依頼でも次の枠組みで処理する。
+
+目的:
+${c.goal}
+
+あなたの役割:
+${c.role}
+
+想定読者・利用者:
+${c.audience}
+
+材料・前提:
+${c.material}
+
+禁止・注意:
+${c.avoid}
+
+出力形式:
+${c.output}
+
+進め方:
+- 目的に照らして不足があれば、作業を止めずに合理的な仮定を置く。重大な不足だけ短く質問する。
+- まず依頼を目的・読者・成果物に分解して考える。
+${c.loop ? "- 生成 → 批判 → 修正 → 再判定 → 仕上げ、の順で内部的に改善してから出す。" : "- 一発回答を優先し、必要な説明だけ添える。"}
+${c.selfCheck ? "- 最終回答の前に、弱点・AIっぽさ・誤解されそうな点を内部で点検して直す。" : "- 自己評価の説明は省き、完成物を優先する。"}
+- 指定された形式を守る。完成版を求められた場合は、そのまま使える形で出す。`;
+}
+function buildAIModePrompt(userText){
+  return `${aiModeInstructionBlock()}
+
+# 今回の依頼
+${(userText || "").trim() || "上の条件に沿って、必要な作業を進めてください。"}`;
+}
+function systemPrompt(){
+  const ag = activeAgent();
+  let s;
+  if (ag) {   // 蒸留された専門家エージェントとして振る舞う
+    s = agentSystemFor(ag);
+    if (longMem.trim()) s += `\n\n# 長期記憶(ユーザーについて)\n${longMem.trim()}`;
+  } else {
+    s = (CFG.persona && CFG.persona.trim()) ? CFG.persona : DEFAULT_PERSONA;
+    s += "\n\n" + GROUNDING_RULES;
+    if (longMem.trim()) s += `\n\n# 長期記憶(ユーザーについて覚えていること)\n${longMem.trim()}`;
+    if (learned.trim()) s += `\n\n# 学習した振る舞いの方針(過去のフィードバック由来)\n${learned.trim()}`;
+    // RAGがONの時は関連だけ注入(下の# 関連メモリ)、OFFなら従来どおり最新取り込みを少量
+    if (!CFG.rag && worldMem.length) s += `\n\n# 最近、自分で取り込んだ最新情報\n` + worldMem.slice(-5).map(w=>`(${new Date(w.t).toLocaleDateString("ja-JP")}) ${w.text}`).join("\n");
+  }
+  if (CFG.aiMode) s += "\n\n" + aiModeInstructionBlock();
+  if (CFG.rag && _ragInject) s += `\n\n# 関連メモリ(今の話題に関係する部分だけ抽出)\n${_ragInject}`;
+  if (CFG.tools) s += "\n\n" + toolsHelp();
+  s += `\n\n# 現在日時: ${new Date().toLocaleString("ja-JP")}`;
+  return s;
+}
+/* ---------- 蒸留: 教師モデルに専門家エージェントの「脳」をJSON設計させる ---------- */
+// コードフェンス除去＋最初の波括弧オブジェクトを括弧対応で抽出＋途中で切れた場合は閉じて修復
+function extractJSON(t){
+  if (!t) return t;
+  let s = String(t).trim().replace(/^﻿/, "");
+  s = s.replace(/^```(?:json|JSON)?\s*/i, "").replace(/```\s*$/i, "").trim();   // ```json ... ``` を剥がす
+  const start = s.indexOf("{");
+  if (start < 0) return s;
+  let depth = 0, inStr = false, esc = false;
+  for (let i = start; i < s.length; i++) {
+    const c = s[i];
+    if (inStr) { if (esc) esc = false; else if (c === "\\") esc = true; else if (c === '"') inStr = false; }
+    else if (c === '"') inStr = true;
+    else if (c === "{") depth++;
+    else if (c === "}") { depth--; if (depth === 0) return s.slice(start, i + 1); }
+  }
+  // 途中で切れている: 開いた文字列/括弧を閉じて最低限パースできる形に修復
+  let rep = s.slice(start);
+  if (inStr) rep += '"';
+  rep = rep.replace(/,\s*$/, "");
+  while (depth-- > 0) rep += "}";
+  return rep;
+}
+const DISTILLER_SYS =
+`あなたは「エージェント蒸留器」です。最新の高性能モデルの専門知識を、特定タスク専用の軽量な専門家エージェントへ凝縮(蒸留)します。
+与えられた専門分野について、その分野の専門家として最高品質で答えるための「専門家の脳」を設計してください。
+出力はJSONオブジェクトのみ。前後の説明・コードフェンス・余計な文字は一切付けない。値はすべて日本語。
+各値には「実際の中身」だけを書く。スキーマ内の説明文(『〜を5〜8個』等)は指示であり、値に含めない。
+スキーマ(この順で出力):
+{
+ "name": "短い日本語名(15文字以内)",
+ "specialty": "専門を一文で要約",
+ "system": "専門家システムプロンプト。役割・専門性・思考手順・口調・制約を簡潔かつ濃密に。150〜300字",
+ "rules": ["守る具体ルール。5〜8個。各40字以内"],
+ "examples": [{"q":"想定質問","a":"模範解答。簡潔・高品質・120字以内"}],
+ "knowledge": "必須の確実な基礎知識・定義・公式・手順を箇条書きで。8〜14項目・全体600字以内。確証のあるものだけ",
+ "format": "回答フォーマット指示。不要なら空文字",
+ "precise": true
+}
+重要: examplesは必ず2〜3個入れ、空にしない。knowledgeは600字以内に収める(長くしすぎない)。正確さ最優先で、不確実な分野は知識を創作せず確実なことだけ書く。`;
+/* 最新情報の自律学習: 専門分野をWeb検索→要点を抽出→エージェントの知識に日付付きで取り込む */
+async function summarizeForAgent(specialty, raw){
+  tempOverride = 0.2; maxTokOverride = 1024;
+  try {
+    const sys = `あなたは技術キュレーターです。検索/技術ソース(GitHub・HuggingFace・arXiv等)の結果から「${specialty}」に関する、確実で新しく実用的な要点だけを5〜10個の短い箇条書き(各50字以内)で日本語抽出します。安全で信頼できる技術のみ採用し、マルウェア・攻撃・悪用目的の技術は除外する。事実のみ・創作禁止・結果に無いことは書かない。ツール名/モデル名/論文の要点は具体的に。箇条書きだけを出力。`;
+    return await streamLLM(sys, [{ role:"user", content:`[ソース]\n${(raw||"").slice(0,3000)}\n\n上記から要点を箇条書きで:` }], ()=>{});
+  } finally { tempOverride = null; maxTokOverride = null; }
+}
+async function learnAgentLatest(agent){
+  if (!CFG.web) throw new Error("最新情報の取り込みには🌐取り込みをONにしてください");
+  if (!CFG.apiKey) throw new Error("脳(APIキー)が必要です(⚙設定)");
+  const web = await webSearch(`${agent.specialty} 最新 ベストプラクティス`);
+  const webOk = web && web.length > 30 && !/見つかりません|見つからなかった|情報が見つか/.test(web);
+  const tech = (CFG.techSources !== false) ? await gatherTech(agent.specialty) : "";   // GitHub/HF/arXivから安全な技術のみ
+  const raw = [ webOk ? web : "", tech ].filter(Boolean).join("\n\n");
+  let notes = "";
+  if (raw.length > 30) notes = (await summarizeForAgent(agent.specialty, raw) || "").trim();
+  agent.knowledge = (agent.knowledge || "").replace(/\n*##\s*最新情報[\s\S]*$/,"").trim();   // 既存の最新情報を差し替え
+  const src = tech ? "Web/GitHub/HF/arXiv" : "Web";
+  if (notes) agent.knowledge += `\n\n## 最新情報(${new Date().toLocaleDateString("ja-JP")} 時点・${src})\n${notes}`;
+  agent.freshAt = Date.now();
+  saveAgents();
+  return { updated: !!notes, usedTech: !!tech };
+}
+async function distillAgent(desc){
+  if (!CFG.apiKey) throw new Error("蒸留には脳(APIキー)が必要です(⚙設定)");
+  tempOverride = 0.3; maxTokOverride = 4096;   // 設計は安定・知識+模範例が切れない長さを確保
+  const userMsg = [{ role:"user", content:`専門分野: ${desc}\nこの分野の専門家エージェントを蒸留してください。JSONオブジェクトのみで出力(コードフェンス禁止)。` }];
+  try {
+    let spec = null, lastErr = null;
+    // ①構造化出力(JSONモード)→ ②非対応プロバイダ等で失敗したら通常出力+堅牢パースで再試行
+    for (const useJson of [true, false]) {
+      try {
+        const full = await streamLLM(DISTILLER_SYS, userMsg, ()=>{}, { jsonMode: useJson });
+        spec = JSON.parse(extractJSON(full));
+        if (spec && typeof spec === "object") break;
+      } catch (e) { lastErr = e; spec = null; }
+    }
+    if (!spec) throw new Error((lastErr && lastErr.message) ? lastErr.message : "JSONの解析に失敗しました");
+    const agent = {
+      id: "ag_" + Date.now().toString(36), created: Date.now(), source: desc,
+      name: (spec.name || desc).toString().slice(0, 16),
+      specialty: (spec.specialty || desc).toString(),
+      system: (spec.system || "").toString(),
+      rules: Array.isArray(spec.rules) ? spec.rules.map(String).slice(0, 10) : [],
+      knowledge: (spec.knowledge || "").toString(),
+      examples: Array.isArray(spec.examples) ? spec.examples.filter(e=>e&&e.q&&e.a).slice(0, 4) : [],
+      format: (spec.format || "").toString(),
+      precise: spec.precise !== false,
+      temp: spec.precise !== false ? 0.2 : 0.45,
+      freshAt: 0,
+    };
+    agents.push(agent); saveAgents();
+    // 自律学習: 蒸留直後にWebで最新情報を取り込む(教師の知識は学習時点で止まっているため)
+    if (CFG.web) { try { await learnAgentLatest(agent); } catch(e){ /* 学習失敗でも蒸留自体は成功 */ } }
+    return agent;
+  } finally { tempOverride = null; maxTokOverride = null; }
+}
+
+/* ---------- 引き継ぎ: 専門家(技術)の書き出し/読み込み/継承。既存を壊さず必ず新IDで安全に取り込む ---------- */
+function sanitizeAgent(o){
+  if (!o || typeof o !== "object") return null;
+  const sys = (o.system || "").toString();
+  const exOk = Array.isArray(o.examples) && o.examples.length;
+  if (!sys && !(o.knowledge) && !exOk) return null;   // 中身が空のものは無効として弾く
+  return {
+    id: "ag_" + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36),   // 衝突回避のため常に新ID
+    created: Number(o.created) || Date.now(), source: (o.source || o.specialty || "").toString().slice(0,200),
+    name: (o.name || o.specialty || "無名").toString().slice(0,16),
+    specialty: (o.specialty || o.name || "").toString().slice(0,200),
+    system: sys.slice(0,4000),
+    rules: Array.isArray(o.rules) ? o.rules.map(String).map(s=>s.slice(0,200)).slice(0,12) : [],
+    knowledge: (o.knowledge || "").toString().slice(0,4000),
+    examples: Array.isArray(o.examples) ? o.examples.filter(e=>e&&e.q&&e.a).map(e=>({ q:String(e.q).slice(0,300), a:String(e.a).slice(0,800) })).slice(0,6) : [],
+    format: (o.format || "").toString().slice(0,600),
+    precise: o.precise !== false,
+    temp: (typeof o.temp === "number" && o.temp >= 0 && o.temp <= 1.5) ? o.temp : (o.precise !== false ? 0.2 : 0.45),
+    freshAt: Number(o.freshAt) || 0,
+  };
+}
+function exportAgents(list){
+  const arr = (list && list.length) ? list : agents;
+  return JSON.stringify({ type:"autonoma-agents", version:1, exportedAt:new Date().toISOString(), agents:arr }, null, 2);
+}
+function downloadText(filename, text){
+  try { const blob = new Blob([text], { type:"application/json" }); const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{ document.body.removeChild(a); URL.revokeObjectURL(url); }catch(_){ } }, 100);
+  } catch(e){}
+}
+function importAgentsFromText(text){
+  let data; try { data = JSON.parse(text); } catch(e){ throw new Error("JSONとして読めませんでした"); }
+  const raw = Array.isArray(data) ? data : (data && Array.isArray(data.agents) ? data.agents : (data && data.system ? [data] : null));
+  if (!raw) throw new Error("エージェントのデータ形式ではありません");
+  let added = 0, skipped = 0;
+  for (const o of raw){ const s = sanitizeAgent(o); if (!s){ skipped++; continue; } agents.push(s); added++; }   // 既存は消さず追加のみ
+  if (added) saveAgents();
+  return { added, skipped };
+}
+function cloneAgent(id){
+  const src = agents.find(a=>a.id===id); if (!src) return null;
+  const copy = sanitizeAgent(Object.assign({}, src, { name:(src.name+"継承").slice(0,16) }));   // 新IDの独立コピー(技術を継承)
+  if (copy){ agents.push(copy); saveAgents(); }
+  return copy;
+}
+
+/* ---------- 会話の絵文字化(単語→絵文字, 馬→🐴) ---------- */
+const EMOJI_DICT = {
+  // 動物
+  "犬":"🐶","子犬":"🐶","猫":"🐱","子猫":"🐱","馬":"🐴","牛":"🐮","豚":"🐷","羊":"🐑","山羊":"🐐","兎":"🐰","ウサギ":"🐰",
+  "狐":"🦊","狼":"🐺","熊":"🐻","パンダ":"🐼","虎":"🐯","ライオン":"🦁","猿":"🐵","ゴリラ":"🦍","象":"🐘","キリン":"🦒",
+  "鹿":"🦌","ねずみ":"🐭","ネズミ":"🐭","ハムスター":"🐹","リス":"🐿","コアラ":"🐨",
+  "鳥":"🐦","小鳥":"🐦","鶏":"🐔","ひよこ":"🐤","ペンギン":"🐧","鷲":"🦅","フクロウ":"🦉","鴨":"🦆","白鳥":"🦢","孔雀":"🦚","オウム":"🦜",
+  "蛙":"🐸","カエル":"🐸","蛇":"🐍","亀":"🐢","トカゲ":"🦎","ワニ":"🐊","恐竜":"🦕","ドラゴン":"🐉",
+  "魚":"🐟","熱帯魚":"🐠","ふぐ":"🐡","イルカ":"🐬","鯨":"🐳","クジラ":"🐳","鮫":"🦈","サメ":"🦈","蛸":"🐙","タコ":"🐙","イカ":"🦑","蟹":"🦀","カニ":"🦀","海老":"🦐","エビ":"🦐","貝":"🐚",
+  "蝶":"🦋","ちょうちょ":"🦋","虫":"🐛","蜂":"🐝","ハチ":"🐝","てんとう虫":"🐞","蟻":"🐜","アリ":"🐜","蜘蛛":"🕷","カタツムリ":"🐌","蚊":"🦟",
+  "ユニコーン":"🦄","蝙蝠":"🦇","コウモリ":"🦇",
+  // 食べ物
+  "寿司":"🍣","おすし":"🍣","ラーメン":"🍜","うどん":"🍜","蕎麦":"🍜","ご飯":"🍚","ごはん":"🍚","おにぎり":"🍙","パン":"🍞","食パン":"🍞","クロワッサン":"🥐","卵":"🥚","たまご":"🥚","肉":"🍖","焼肉":"🍖","鶏肉":"🍗","唐揚げ":"🍗","ステーキ":"🥩","ベーコン":"🥓","ピザ":"🍕","ハンバーガー":"🍔","ハンバーグ":"🍔","ホットドッグ":"🌭","サンドイッチ":"🥪","タコス":"🌮","カレー":"🍛","パスタ":"🍝","スパゲッティ":"🍝","チーズ":"🧀","サラダ":"🥗","スープ":"🍲","鍋":"🍲","おでん":"🍢","餃子":"🥟","天ぷら":"🍤","フライドポテト":"🍟","ポテト":"🍟",
+  "団子":"🍡","だんご":"🍡","ケーキ":"🍰","ショートケーキ":"🍰","誕生日ケーキ":"🎂","プリン":"🍮","ドーナツ":"🍩","クッキー":"🍪","チョコ":"🍫","チョコレート":"🍫","飴":"🍬","キャンディ":"🍬","アイス":"🍦","アイスクリーム":"🍨","かき氷":"🍧","ポップコーン":"🍿","蜂蜜":"🍯","はちみつ":"🍯",
+  // 果物・野菜
+  "りんご":"🍎","リンゴ":"🍎","林檎":"🍎","みかん":"🍊","オレンジ":"🍊","レモン":"🍋","バナナ":"🍌","すいか":"🍉","スイカ":"🍉","ぶどう":"🍇","ブドウ":"🍇","苺":"🍓","いちご":"🍓","イチゴ":"🍓","桃":"🍑","さくらんぼ":"🍒","パイナップル":"🍍","メロン":"🍈","キウイ":"🥝","ココナッツ":"🥥","マンゴー":"🥭",
+  "トマト":"🍅","茄子":"🍆","ナス":"🍆","とうもろこし":"🌽","トウモロコシ":"🌽","人参":"🥕","にんじん":"🥕","じゃがいも":"🥔","ジャガイモ":"🥔","さつまいも":"🍠","玉ねぎ":"🧅","にんにく":"🧄","ブロッコリー":"🥦","きのこ":"🍄","キノコ":"🍄","栗":"🌰","枝豆":"🫛","アボカド":"🥑","唐辛子":"🌶",
+  // 飲み物
+  "コーヒー":"☕","珈琲":"☕","お茶":"🍵","抹茶":"🍵","紅茶":"🍵","ビール":"🍺","ワイン":"🍷","日本酒":"🍶","お酒":"🍶","牛乳":"🥛","ミルク":"🥛","ジュース":"🧃","シャンパン":"🍾","カクテル":"🍸","タピオカ":"🧋","お水":"💧",
+  // 自然・天気
+  "太陽":"☀","おひさま":"☀","お日様":"☀","お月様":"🌙","三日月":"🌙","満月":"🌕","星":"⭐","流れ星":"🌠","地球":"🌍","宇宙":"🌌","銀河":"🌌","雷":"⚡","稲妻":"⚡","雨":"☔","台風":"🌀","雪":"❄","雪だるま":"⛄","虹":"🌈","雲":"☁","海":"🌊","波":"🌊","山":"⛰","富士山":"🗻","火山":"🌋","砂漠":"🏜","島":"🏝","炎":"🔥","火事":"🔥",
+  // 植物
+  "桜":"🌸","さくら":"🌸","梅":"🌸","花":"🌸","お花":"🌸","花束":"💐","バラ":"🌹","薔薇":"🌹","ひまわり":"🌻","チューリップ":"🌷","ハイビスカス":"🌺","松":"🌲","ヤシ":"🌴","竹":"🎋","葉っぱ":"🍃","紅葉":"🍁","もみじ":"🍁","四つ葉":"🍀","クローバー":"🍀","サボテン":"🌵","草":"🌿","新芽":"🌱","どんぐり":"🌰",
+  // 乗り物
+  "車":"🚗","自動車":"🚗","タクシー":"🚕","バス":"🚌","トラック":"🚚","救急車":"🚑","消防車":"🚒","パトカー":"🚓","バイク":"🏍","オートバイ":"🏍","自転車":"🚲","電車":"🚃","列車":"🚆","新幹線":"🚅","地下鉄":"🚇","飛行機":"✈","ヘリコプター":"🚁","ロケット":"🚀","船":"⛵","ボート":"⛵","ヨット":"⛵","気球":"🎈","熱気球":"🎈",
+  // もの
+  "家":"🏠","お家":"🏠","ビル":"🏢","学校":"🏫","病院":"🏥","お城":"🏰","城":"🏰","神社":"⛩","教会":"⛪","東京タワー":"🗼","鍵":"🔑","時計":"⏰","目覚まし":"⏰","電話":"📞","スマホ":"📱","携帯":"📱","パソコン":"💻","テレビ":"📺","カメラ":"📷","教科書":"📚","ノート":"📓","鉛筆":"✏","ペン":"🖊","定規":"📏","手紙":"✉","メール":"📧","封筒":"✉","お金":"💰","財布":"👛","プレゼント":"🎁","贈り物":"🎁","風船":"🎈","爆弾":"💣","電球":"💡","アイデア":"💡","懐中電灯":"🔦","傘":"☂","かさ":"☂","鞄":"👜","カバン":"👜","リュック":"🎒","靴":"👟","スニーカー":"👟","ハイヒール":"👠","帽子":"🎩","眼鏡":"👓","メガネ":"👓","サングラス":"🕶","王冠":"👑","指輪":"💍","ダイヤ":"💎","宝石":"💎","薬":"💊","注射":"💉","顕微鏡":"🔬","望遠鏡":"🔭","虫眼鏡":"🔍","磁石":"🧲","電池":"🔋","歯車":"⚙","金槌":"🔨","包丁":"🔪","はさみ":"✂","ハサミ":"✂","毛糸":"🧶","旗":"🚩","信号":"🚥",
+  // スポーツ・趣味
+  "サッカー":"⚽","野球":"⚾","バスケ":"🏀","バスケット":"🏀","テニス":"🎾","ゴルフ":"⛳","ボウリング":"🎳","ラグビー":"🏉","卓球":"🏓","バレー":"🏐","バドミントン":"🏸","アメフト":"🏈","ビリヤード":"🎱","ダーツ":"🎯","スキー":"🎿","スノボ":"🏂","サーフィン":"🏄","水泳":"🏊","ランニング":"🏃","ヨガ":"🧘","釣り":"🎣","ゲーム":"🎮","パズル":"🧩","サイコロ":"🎲","トランプ":"🃏",
+  // 音楽・芸術
+  "音楽":"🎵","音符":"🎶","ギター":"🎸","ピアノ":"🎹","ドラム":"🥁","トランペット":"🎺","サックス":"🎷","バイオリン":"🎻","マイク":"🎤","ヘッドホン":"🎧","イヤホン":"🎧","ラジオ":"📻","映画":"🎬","映画館":"🎬","演劇":"🎭","絵画":"🎨","パレット":"🎨","写真":"📷",
+  // 人・キャラ
+  "赤ちゃん":"👶","子供":"🧒","王様":"🤴","お姫様":"👸","姫":"👸","忍者":"🥷","侍":"🥷","サンタ":"🎅","サンタクロース":"🎅","天使":"👼","悪魔":"👿","おばけ":"👻","お化け":"👻","幽霊":"👻","ロボット":"🤖","宇宙人":"👽","エイリアン":"👽","骸骨":"💀","ガイコツ":"💀","ゾンビ":"🧟","魔女":"🧙","妖精":"🧚","人魚":"🧜","魔法使い":"🧙","探偵":"🕵","警察":"👮",
+  // 気持ち・記号
+  "ハート":"❤","恋":"💕","キス":"💋","笑顔":"😊","笑い":"😂","涙":"😢","怒り":"💢","汗":"💦","拍手":"👏","グッド":"👍","いいね":"👍","オッケー":"👌","ピース":"✌","祈り":"🙏","ありがとう":"🙏","おめでとう":"🎉","お祝い":"🎉","パーティー":"🎉","乾杯":"🥂","誕生日":"🎂","キラキラ":"✨","きらきら":"✨","花火":"🎆","クリスマス":"🎄","ツリー":"🎄","眠い":"💤","睡眠":"💤","夢":"💭",
+  // 時間・天体
+  "朝日":"🌅","夕日":"🌇","夕焼け":"🌇","夜景":"🌃","砂時計":"⌛",
+};
+const EMOJI_PAIRS = Object.keys(EMOJI_DICT).sort((a,b)=>b.length-a.length);
+const EMOJI_RE = new RegExp(EMOJI_PAIRS.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|"), "g");
+function emojify(text){
+  if(!CFG.emoji || !text) return text;
+  return text.replace(EMOJI_RE, (m, off, str)=>{ const e=EMOJI_DICT[m]; if(!e) return m; return str.slice(off+m.length, off+m.length+e.length)===e ? m : m+e; });
+}
+
+/* ---------- UI: メッセージ ---------- */
+function add(text, cls, badge){
+  const d = document.createElement("div"); d.className = "msg " + cls;
+  const span = document.createElement("span"); span.textContent = (cls==="me"||cls==="ai") ? emojify(text) : text; d.appendChild(span);
+  if (badge){ const b=document.createElement("div"); b.className="badge"; b.textContent=badge; d.appendChild(b); }
+  logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; return d;
+}
+function sys(t){ return add(t, "sys"); }
+function renderHistory(){
+  logEl.innerHTML = "";
+  if (!history.length) sys("こんにちは。私は AUTONOMA です。⚙設定で無料の脳(APIキー)を選んでから話しかけてください。");
+  for (const m of history) add(m.content, m.role === "user" ? "me" : "ai");
+}
+
+/* ---------- LLM 呼び出し(ストリーミング) ---------- */
+let abortCtl = null;
+function buildMessages(){
+  // 直近の履歴をそのまま(長すぎる場合は末尾を残す)
+  return history.slice(-24).map(m => ({ role: m.role, content: m.content }));
+}
+let tempOverride = null, maxTokOverride = null;   // 蒸留エージェント実行/蒸留時の一時上書き
+function curTemp(){ if (tempOverride != null) return tempOverride; const a = activeAgent(); if (a && a.temp != null) return a.temp; return CFG.temp != null ? CFG.temp : 0.4; }
+function curMaxTok(){ return maxTokOverride || 1024; }
+async function streamLLM(sysText, msgs, onToken, opts){
+  opts = opts || {};
+  const pv = curProv();
+  if (!CFG.apiKey) throw new Error("APIキーが未設定です(⚙設定)");
+  abortCtl = new AbortController();
+  const apiBase = safeUrl(pv.base, { allowLocal:true }).replace(/\/$/,"");
+  let url, opt;
+  if (pv.kind === "gemini") {
+    url = `${apiBase}/models/${encodeURIComponent(pv.model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(CFG.apiKey)}`;
+    const contents = msgs.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
+    if (opts.image && opts.image.data) { for (let i=contents.length-1;i>=0;i--){ if(contents[i].role==="user"){ contents[i].parts.push({ inline_data:{ mime_type: opts.image.mime||"image/jpeg", data: opts.image.data } }); break; } } }   // ③ マルチモーダル(画像)
+    const genCfg = { temperature: curTemp(), topP: 0.9, maxOutputTokens: curMaxTok() };   // temperatureは設定で0〜1.5
+    if (opts.jsonMode) genCfg.responseMimeType = "application/json";   // 構造化出力(コードフェンス無しの正しいJSONを強制)
+    opt = { method:"POST", headers:{ "Content-Type":"application/json" }, signal: abortCtl.signal,
+      body: JSON.stringify({ system_instruction: { parts: [{ text: sysText }] }, contents, generationConfig: genCfg }) };
+  } else { // OpenAI互換
+    url = `${apiBase}/chat/completions`;
+    const payload = { model: pv.model, stream: true, temperature: curTemp(), top_p: 0.9, max_tokens: curMaxTok(),
+      messages: [{ role:"system", content: sysText }, ...msgs] };
+    if (opts.jsonMode) payload.response_format = { type: "json_object" };   // 構造化出力(OpenAI互換のJSONモード)
+    opt = { method:"POST", headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+CFG.apiKey }, signal: abortCtl.signal,
+      body: JSON.stringify(payload) };
+  }
+  const res = guardResponseSize(await safeFetch(url, opt, { allowLocal:true }));
+  if (!res.ok) { const t = await res.text().catch(()=> ""); throw new Error(`HTTP ${res.status}: ${t.slice(0,200)}`); }
+  const reader = res.body.getReader(); const dec = new TextDecoder();
+  let buf = "", full = "";
+  while (true) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream:true });
+    let i;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      let line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+      if (!line.startsWith("data:")) continue;
+      const data = line.slice(5).trim();
+      if (data === "[DONE]") continue;
+      try {
+        const j = JSON.parse(data);
+        let piece = "";
+        if (pv.kind === "gemini") piece = j.candidates?.[0]?.content?.parts?.map(p=>p.text||"").join("") || "";
+        else piece = j.choices?.[0]?.delta?.content || "";
+        if (piece) { full += piece; onToken(full); }
+      } catch (e) { /* 部分JSONはスキップ */ }
+    }
+  }
+  return full;
+}
+
+/* ---------- 自律: 定期的に最新ニュース/技術を取り込み記憶へ蓄積 ---------- */
+let ingesting = false;
+async function gatherHeadlines(){
+  if (!CFG.web) return [];
+  const out=[];
+  try {
+    const ids = await _json(await _politeFetch("https://hacker-news.firebaseio.com/v0/topstories.json"));
+    const items = await Promise.all((Array.isArray(ids)?ids:[]).slice(0,8).map(id=>_politeFetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r=>r?r.json():null).catch(()=>null)));
+    items.filter(Boolean).forEach(i=>{ if(i.title) out.push("[tech] "+i.title); });
+  } catch(e){}
+  try {
+    const d=new Date(Date.now()-864e5), y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0"), dd=String(d.getUTCDate()).padStart(2,"0");
+    const fe = await _json(await _politeFetch(`https://api.wikimedia.org/feed/v1/wikipedia/ja/featured/${y}/${m}/${dd}`));
+    (fe?.news||[]).slice(0,5).forEach(n=>{ const t=(n.story||"").replace(/<[^>]+>/g,"").trim(); if(t) out.push("[news] "+t); });
+  } catch(e){}
+  // GitHub / HuggingFace / arXiv から安全性の高い技術を自動取り込み
+  if (CFG.techSources !== false) { try { const tech = await gatherTech(CFG.techTopic || "AI LLM machine learning"); tech.split("\n").filter(Boolean).slice(0,6).forEach(l=>out.push("[tech] "+l)); } catch(e){} }
+  return out;
+}
+async function ingest(manual){
+  if (!CFG.web) { if (manual) sys("🌐 取り込みはOFFです。必要な場合だけONにしてください。"); return; }
+  if (ingesting) return; ingesting=true;
+  const note = sys("📰 最新情報を取り込み中…");
+  try {
+    const heads = await gatherHeadlines();
+    if (!heads.length){ note.firstChild ? note.firstChild.textContent="📰 取り込めるニュースがありませんでした" : note.textContent="📰 取り込めるニュースがありませんでした"; ingesting=false; return; }
+    let digest;
+    if (CFG.apiKey) {
+      const prompt = `次は最新のニュース/技術の見出しです。長期記憶に残す価値のある要点だけを、日本語の箇条書き3〜6個に蒸留してください。固有名詞・数値・日付は保持。広告的な見出しは除く。\n\n${heads.join("\n")}`;
+      digest = (await streamLLM("あなたは情報を簡潔に蒸留する編集者です。", [{role:"user",content:prompt}], ()=>{})).trim();
+    } else {
+      digest = heads.slice(0,8).join("\n");
+    }
+    worldMem.push({ t: Date.now(), text: digest }); saveWorld();
+    note.remove();
+    add("📰 取り込んだ要点:\n" + digest, "tool");
+  } catch(e){ note.remove(); add("📰 取り込み失敗: "+e.message, "tool"); }
+  ingesting=false;
+}
+async function fetchCloudFeed(){
+  if (!CFG.web) return;
+  if (!CFG.feedUrl) return;
+  try {
+    const r = guardResponseSize(await safeFetch(CFG.feedUrl, { cache:"no-store" }, { allowLocal:true }), 512 * 1024);
+    const data = await r.json();
+    const items = Array.isArray(data) ? data : (data.items || []);
+    const seen = new Set(worldMem.map(w=>w.text));
+    let added = 0;
+    for (const it of items.slice(0, SECURITY.maxFeedItems)) { const text = clipText(it.text || it.digest || "", SECURITY.maxFeedTextChars); if (text && !seen.has(text)) { worldMem.push({ t: Number(it.t) || Date.now(), text }); seen.add(text); added++; } }
+    if (added) { worldMem.sort((a,b)=>a.t-b.t); saveWorld(); sys(`☁ クラウドから ${added} 件の最新情報を受信(タブを閉じていた間の裏取り込み)`); }
+  } catch(e){ /* オフライン等は無視 */ }
+}
+function scheduleIngest(){
+  if (window.__ingTimer) clearInterval(window.__ingTimer);
+  if (CFG.web && CFG.ingestMin>0) window.__ingTimer = setInterval(()=>{ ingest(false); fetchCloudFeed(); reflect(false); }, CFG.ingestMin*60000);
+}
+
+/* ---------- 自己学習: 会話から長期記憶を抽出 / フィードバック方針 ---------- */
+async function learnFromConversation(){
+  if (!CFG.apiKey || history.length<4) return;
+  try {
+    const convo = history.slice(-12).map(m=>(m.role==="user"?"ユーザー: ":"AI: ")+m.content).join("\n");
+    const prompt = `次の会話から、ユーザーについて『長期的に覚える価値のある事実・好み・前提』だけを箇条書きで抽出してください。一時的な話題や既出は除く。無ければ「なし」とだけ書いてください。\n\n${convo}`;
+    const facts = (await streamLLM("あなたはユーザーの長期記憶を整理するアシスタントです。", [{role:"user",content:prompt}], ()=>{})).trim();
+    if (facts && !/^なし/.test(facts)) { longMem = (longMem? longMem+"\n":"") + facts; longMem=longMem.slice(-2000); saveMem(); sys("🧠 会話から学習し、長期記憶を更新しました。"); reflect(false); }
+  } catch(e){}
+}
+async function reflect(manual){
+  if (!CFG.apiKey) { if (manual) sys("内省には脳(APIキー)が必要です。"); return; }
+  const needLong = longMem.length > 1400, needLearn = learned.length > 1400;
+  if (!manual && !needLong && !needLearn) return;
+  const note = sys("🪞 記憶を内省・整理中…");
+  try {
+    if (manual || needLong) {
+      const r = (await streamLLM("あなたは記憶を整理する司書です。重複を統合し、重要で長期的な事実だけを残し、簡潔な箇条書きに再構成します。",
+        [{role:"user",content:`次の長期記憶を、重複・冗長を取り除き、本当に長期保存すべき事実だけの簡潔な箇条書き(最大15項目)に整理してください。前置きや解説は不要、箇条書きのみ。\n\n${longMem}`}], ()=>{})).trim();
+      if (r) { longMem = r.slice(0,2000); saveMem(); }
+    }
+    if (manual || needLearn) {
+      const r = (await streamLLM("あなたは行動方針を整理するコーチです。重複・矛盾を解消し、有効な指針だけを簡潔に残します。",
+        [{role:"user",content:`次の「学習した振る舞いの方針」を、重複・矛盾を解消し、有効な指針だけの簡潔な箇条書き(最大10項目)に整理してください。箇条書きのみ。\n\n${learned}`}], ()=>{})).trim();
+      if (r) { learned = r.slice(0,2000); saveLearned(); }
+    }
+    note.remove(); sys("🪞 内省完了。記憶と方針を整理しました。");
+  } catch(e){ note.remove(); sys("🪞 内省失敗: "+e.message); }
+}
+function attachFeedback(node, text){
+  const w=document.createElement("div"); w.style.cssText="margin-top:6px;display:flex;gap:6px";
+  const mk=(label,good)=>{ const btn=document.createElement("button"); btn.className="ghost"; btn.style.cssText="font-size:11px;padding:3px 8px"; btn.textContent=label;
+    btn.onclick=()=>{ let msg;
+      if(good){ learned=(learned?learned+"\n":"")+`・好評: 「${text.slice(0,40)}…」のような応答はユーザーに好まれた。`; msg="👍 学習しました"; face.addAffection(4); }
+      else { const why=prompt("どこが良くなかった?(任意)")||""; learned=(learned?learned+"\n":"")+`・要改善: 直近の応答は不評。${why?("理由:"+why+"。"):""}次から避ける/直す。`; msg="👎 学習しました"; face.addAffection(-3); }
+      saveLearned(); reflect(false); w.innerHTML=`<span style="font-size:11px;color:#7d8aa5">${msg}</span>`;
+    }; return btn; };
+  w.appendChild(mk("👍",true)); w.appendChild(mk("👎",false)); node.appendChild(w);
+}
+
+/* ---------- Web取り込み(最新情報・無料・CORS対応のWikipedia) ---------- */
+/* ---------- 検索バックエンド(複数・bot判定に配慮: 公式API/逐次スロットリング/キャッシュ) ---------- */
+const _searchCache = new Map();      // q → {t, text}  10分キャッシュで再アクセスを減らす
+let _lastFetchT = 0;
+const _sleep = (ms)=> new Promise(r=>setTimeout(r,ms));
+async function _politeFetch(url, ms=6000){
+  const gap = 350 - (Date.now() - _lastFetchT); if (gap > 0) await _sleep(gap);   // 最低350ms間隔=叩きすぎない
+  _lastFetchT = Date.now();
+  const c=new AbortController(); const to=setTimeout(()=>{ try{c.abort();}catch(_){}}, ms);
+  try { const r = guardResponseSize(await safeFetch(url, { signal:c.signal }, { allowLocal:false }), 2 * 1024 * 1024); clearTimeout(to); return r.ok ? r : null; }
+  catch(e){ clearTimeout(to); return null; }
+}
+const _json = async (r)=> r ? r.json().catch(()=>null) : null;
+async function _wiki(lang, q){
+  const j = await _json(await _politeFetch(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=1&format=json&origin=*`));
+  const hit = j?.query?.search?.[0]; if(!hit) return null;
+  const sj = await _json(await _politeFetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(hit.title.replace(/ /g,"_"))}`));
+  return sj?.extract ? `【Wikipedia(${lang}) ${hit.title}】${sj.extract}` : null;
+}
+async function _wikidata(q){
+  const lang = /[぀-ヿ一-鿿]/.test(q) ? "ja" : "en";
+  const j = await _json(await _politeFetch(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(q)}&language=${lang}&uselang=${lang}&limit=2&format=json&origin=*`));
+  const out = (j?.search||[]).filter(e=>e.description).slice(0,2).map(e=>`【Wikidata ${e.label}】${e.description}`);
+  return out.length ? out.join("\n") : null;
+}
+async function _ddg(q){
+  const j = await _json(await _politeFetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`));
+  const txt = j ? (j.AbstractText || j.Definition || (j.RelatedTopics?.[0]?.Text) || "") : "";
+  return txt ? `【DuckDuckGo】${txt}` : null;
+}
+async function webSearch(q){
+  q = q.trim().replace(/^[「『\"]|[」』\"]$/g, "");
+  if(!q) return "検索語が空です。";
+  const cached = _searchCache.get(q); if (cached && Date.now()-cached.t < 600000) return cached.text;   // bot判定回避: 同じ検索は再利用
+  const ja = /[぀-ヿ一-鿿]/.test(q);
+  const order = ja ? ["wj","we","wd","dd"] : ["we","wj","wd","dd"];   // 言語で優先順を切替
+  const out = [];
+  for (const src of order){
+    let r=null;
+    try {
+      if (src==="wj") r = await _wiki("ja", q);
+      else if (src==="we") r = await _wiki("en", q);
+      else if (src==="wd") r = await _wikidata(q);
+      else if (src==="dd") r = await _ddg(q);
+    } catch(e){ r=null; }
+    if (r) out.push(r);
+    if (out.length >= 2) break;     // 十分集まったら打ち止め=サーバを叩きすぎない
+  }
+  const text = out.length ? out.join("\n\n") : `「${q}」に該当する確かな情報は見つかりませんでした。`;
+  _searchCache.set(q, { t:Date.now(), text });
+  return text;
+}
+
+/* ---------- 技術ソース: GitHub / HuggingFace / arXiv から「安全性の高い技術のみ」自動取り込み ----------
+   各ソースは失敗(CORS/オフライン等)しても [] を返し、本体は壊れない。攻撃・悪用系は除外。信頼指標(★/DL数/モデレーション)で品質を担保。*/
+const _UNSAFE_RE = /\b(malware|ransomware|botnet|keylogger|rootkit|spyware|stealer|trojan|backdoor|ddos|phishing|carding|credential[- ]?stealer|exploit[- ]?kit|aimbot|wallhack|cheat\s?engine)\b|マルウェア|ランサム|遠隔操作ウイルス|ウイルス作成|不正アクセス|総当たり攻撃|チート|脆弱性の悪用/i;
+function isSafeTech(text){ return !!text && !_UNSAFE_RE.test(text); }   // 悪用・攻撃用途は弾く=安全性の高い技術のみ
+async function ghSearch(q){
+  const j = await _json(await _politeFetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=6`));
+  return (j?.items || [])
+    .filter(r => (r.stargazers_count||0) >= 200 && !r.archived && r.license && isSafeTech(`${r.full_name} ${r.description||""} ${(r.topics||[]).join(" ")}`))   // 高star・非archive・ライセンス有=信頼
+    .slice(0,3)
+    .map(r => `【GitHub ★${r.stargazers_count} ${r.license?.spdx_id||""}】${r.full_name}: ${(r.description||"").replace(/\s+/g," ").slice(0,140)}`);
+}
+async function hfSearch(q){
+  const j = await _json(await _politeFetch(`https://huggingface.co/api/models?search=${encodeURIComponent(q)}&sort=downloads&direction=-1&limit=8`));
+  return (Array.isArray(j) ? j : [])
+    .filter(m => (m.downloads||0) >= 1000 && !m.private && !m.gated && isSafeTech(`${m.id||m.modelId||""} ${m.pipeline_tag||""} ${(m.tags||[]).join(" ")}`))   // DL多・非private・非gated=信頼
+    .slice(0,3)
+    .map(m => `【HuggingFace ⬇${m.downloads||0}】${m.id||m.modelId}${m.pipeline_tag?` (${m.pipeline_tag})`:""}`);
+}
+async function arxivSearch(q){
+  const r = await _politeFetch(`https://export.arxiv.org/api/query?search_query=${encodeURIComponent("all:"+q)}&start=0&max_results=4&sortBy=submittedDate&sortOrder=descending`);
+  if (!r) return [];
+  const xml = await r.text().catch(()=>null); if (!xml) return [];
+  const out = [];
+  for (const e of xml.split("<entry>").slice(1,5)){
+    const g = (re)=>{ const m = e.match(re); return m ? m[1].replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim() : ""; };
+    const title = g(/<title>([\s\S]*?)<\/title>/), summ = g(/<summary>([\s\S]*?)<\/summary>/);
+    const line = `【arXiv】${title.slice(0,120)}: ${summ.slice(0,170)}`;
+    if (title && isSafeTech(line)) out.push(line);
+  }
+  return out;
+}
+async function gatherTech(q){
+  if (!q) return "";
+  const lines = [];
+  for (const fn of [ghSearch, hfSearch, arxivSearch]){ try { (await fn(q)).forEach(l=>lines.push(l)); } catch(e){ /* 1ソース失敗は無視=壊れない */ } }
+  return lines.filter(isSafeTech).join("\n");
+}
+
+/* ================= ① RAG記憶: 埋め込みで関連だけ動的注入(賢さ+正確さ+速さ+コスト同時改善) ================= */
+let docs = Array.isArray(safeJsonLoad("mind.docs", [])) ? safeJsonLoad("mind.docs", []).slice(-400) : [];   // 取り込んだ文書チャンク [{id,text,src}]
+function saveDocs(){ safeStore("mind.docs", JSON.stringify(docs.slice(-400))); }
+const _vecCache = new Map();   // hash(method+text) -> vector(Array)
+function _hash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0).toString(36); }
+function localEmbed(t){   // 依存なし・即時の局所埋め込み(文字3-gramハッシュ→正規化256次元)
+  const dim=256, v=new Array(dim).fill(0); const s=(t||"").toLowerCase();
+  for(let i=0;i<s.length-2;i++){ const h=(((s.charCodeAt(i)*131071+s.charCodeAt(i+1)*8191+s.charCodeAt(i+2))%dim)+dim)%dim; v[h]+=1; }
+  let n=0; for(let i=0;i<dim;i++) n+=v[i]*v[i]; n=Math.sqrt(n)||1; for(let i=0;i<dim;i++) v[i]/=n; return v;
+}
+function embedMethod(){ return (curProv().kind==="gemini" && CFG.apiKey) ? "gemini" : "local"; }
+async function embedTexts(texts){
+  const method = embedMethod();
+  const out = new Array(texts.length); const need=[], needIdx=[];
+  texts.forEach((t,i)=>{ const k=method+":"+_hash(t); if(_vecCache.has(k)) out[i]=_vecCache.get(k); else { need.push(t); needIdx.push(i); } });
+  if (need.length){
+    let vecs=null;
+    if (method==="gemini"){
+      try{
+        const pv=curProv();
+        const base=safeUrl(pv.base, { allowLocal:true }).replace(/\/$/,"");
+        const r=guardResponseSize(await safeFetch(`${base}/models/text-embedding-004:batchEmbedContents?key=${encodeURIComponent(CFG.apiKey)}`,
+          { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ requests: need.map(t=>({ model:"models/text-embedding-004", content:{ parts:[{text:t.slice(0,2000)}] } })) }) },
+          { allowLocal:true }));
+        if(r.ok){ const j=await r.json(); vecs=(j.embeddings||[]).map(e=>e.values); }
+      }catch(e){}
+    }
+    if(!vecs || vecs.length!==need.length) vecs = need.map(localEmbed);   // 失敗/非対応は局所埋め込みへフォールバック
+    vecs.forEach((v,j)=>{ const i=needIdx[j], k=method+":"+_hash(need[j]); _vecCache.set(k,v); out[i]=v; });
+  }
+  return out;
+}
+function cosine(a,b){ let d=0; const n=Math.min(a.length,b.length); for(let i=0;i<n;i++) d+=a[i]*b[i]; return d; }
+function _chunk(text, src){ const parts=[]; (text||"").split(/\n{2,}|(?<=。)\s*/).forEach(p=>{ p=p.trim(); if(p.length>=8) parts.push({ text:p.slice(0,500), src }); }); return parts; }
+function ragItems(){   // 検索対象: 長期記憶 + 自律取り込み + 取り込み文書 + 稼働エージェントの知識
+  const items=[];
+  _chunk(longMem,"記憶").forEach(c=>items.push(c));
+  worldMem.slice(-30).forEach(w=>items.push({ text:(w.text||"").slice(0,500), src:"取込" }));
+  docs.forEach(d=>items.push({ text:d.text, src:d.src||"文書" }));
+  const ag=activeAgent(); if(ag&&ag.knowledge) _chunk(ag.knowledge, ag.name).forEach(c=>items.push(c));
+  return items.filter(i=>i.text && i.text.length>=8);
+}
+async function retrieveContext(query, k){
+  if (!CFG.rag) return "";
+  const items = ragItems(); if (!items.length) return "";
+  try {
+    const [qv, ...ivs] = await embedTexts([query, ...items.map(i=>i.text)]);
+    const scored = items.map((it,i)=>({ it, s: cosine(qv, ivs[i]) })).sort((a,b)=>b.s-a.s).slice(0, k||6);
+    const picked = scored.filter(x=>x.s>0.05);
+    if (!picked.length) return "";
+    return picked.map(x=>`(${x.it.src}) ${x.it.text}`).join("\n");
+  } catch(e){ return ""; }
+}
+
+/* ================= ② ツール使用: ((TOOL: 名前 | 入力)) を確実に実行 ================= */
+function safeCalcExpr(input){
+  const s = String(input || "").replace(/\s+/g, "");
+  if (!s || s.length > 160 || /[^0-9+\-*/%().eE]/.test(s)) throw new Error("invalid");
+  let i = 0;
+  const peek = ()=>s[i];
+  const eat = c=>{ if(s[i]===c){ i++; return true; } return false; };
+  const number = ()=>{
+    const m = s.slice(i).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+\-]?\d+)?/i);
+    if(!m) throw new Error("number");
+    i += m[0].length;
+    return Number(m[0]);
+  };
+  const factor = ()=>{
+    if (eat("+")) return factor();
+    if (eat("-")) return -factor();
+    if (eat("(")) { const v = expr(); if(!eat(")")) throw new Error("paren"); return v; }
+    return number();
+  };
+  const term = ()=>{
+    let v = factor();
+    while (peek()==="*" || peek()==="/" || peek()==="%") {
+      const op = s[i++], r = factor();
+      if (op==="*") v *= r; else if (op==="/") v /= r; else v %= r;
+      if (!Number.isFinite(v)) throw new Error("finite");
+    }
+    return v;
+  };
+  const expr = ()=>{
+    let v = term();
+    while (peek()==="+" || peek()==="-") {
+      const op = s[i++], r = term();
+      v = op==="+" ? v + r : v - r;
+      if (!Number.isFinite(v)) throw new Error("finite");
+    }
+    return v;
+  };
+  const v = expr();
+  if (i !== s.length || !Number.isFinite(v)) throw new Error("invalid");
+  return v;
+}
+const TOOLS = {
+  calc: { desc:"四則・数式計算。入力は式(例: (12*3+4)/2)", run:(x)=>{ try{ return String(safeCalcExpr(x)); }catch(e){ return "計算エラー"; } } },
+  time: { desc:"現在の日時を返す。入力不要", run:()=> new Date().toLocaleString("ja-JP") },
+  search:{ desc:"Web検索(事実確認)。入力は検索語", run:(x)=> webSearch(x) },
+  tech: { desc:"GitHub/HuggingFace/arXivから安全な技術を検索。入力はトピック", run:(x)=> gatherTech(x) },
+};
+function toolsHelp(){ return "# 使えるツール(必要な時だけ、行頭に1つ書く)\n" + Object.entries(TOOLS).map(([k,v])=>`- ((TOOL: ${k} | 入力)) … ${v.desc}`).join("\n") + "\n結果が [ツール結果] として渡されたら、それだけを根拠に最終回答する。"; }
+async function runTool(name, input){
+  const t = TOOLS[(name||"").trim().toLowerCase()]; if(!t) return `不明なツール: ${name}`;
+  try { const r = await t.run((input||"").trim()); return (r==null?"":String(r)).slice(0,1200) || "(結果なし)"; }
+  catch(e){ return "ツール実行エラー: "+e.message; }
+}
+
+/* ================= ④ エージェントの自己評価・自己改善ループ ================= */
+async function evalAgent(agent){
+  if(!CFG.apiKey) throw new Error("評価には脳(APIキー)が必要です");
+  tempOverride=0.3; maxTokOverride=2048;
+  let questions=[];
+  try {
+    const q = await streamLLM(`あなたは試験官です。専門「${agent.specialty}」の実力を測る、答えが明確で良問な評価質問を3つ作ります。JSON配列のみ出力(例: ["q1","q2","q3"])。`,
+      [{role:"user",content:`専門: ${agent.specialty}\n評価用の質問を3つ、JSON配列で。`}], ()=>{}, {jsonMode:true});
+    const arr = JSON.parse(extractJSON(q)); questions = Array.isArray(arr)? arr.slice(0,3).map(String) : [];
+  } finally { tempOverride=null; maxTokOverride=null; }
+  if(!questions.length) throw new Error("評価質問の生成に失敗しました");
+  const sys = agentSystemFor(agent);
+  const answers=[];
+  tempOverride = agent.temp!=null?agent.temp:0.2;
+  try { for(const qq of questions){ answers.push((await streamLLM(sys,[{role:"user",content:qq}],()=>{})).trim()); } }
+  finally { tempOverride=null; }
+  tempOverride=0.2; maxTokOverride=2048;
+  try {
+    const grade = await streamLLM(`あなたは厳格な採点者です。専門「${agent.specialty}」の回答群を採点します。0-100のscoreと、弱点(weaknesses:文字列配列)をJSONで返す。{"score":number,"weaknesses":[...]} のみ。`,
+      [{role:"user",content: questions.map((q,i)=>`Q${i+1}: ${q}\nA${i+1}: ${answers[i]}`).join("\n\n")+"\n\n採点して。"}], ()=>{}, {jsonMode:true});
+    const g = JSON.parse(extractJSON(grade));
+    return { score: Math.max(0,Math.min(100, Number(g.score)||0)), weaknesses: Array.isArray(g.weaknesses)? g.weaknesses.map(String).slice(0,6):[], questions, answers };
+  } finally { tempOverride=null; maxTokOverride=null; }
+}
+async function refineAgent(agent, weaknesses){
+  if(!CFG.apiKey) throw new Error("改善には脳(APIキー)が必要です");
+  tempOverride=0.3; maxTokOverride=4096;
+  try {
+    const cur = JSON.stringify({ system:agent.system, rules:agent.rules, knowledge:agent.knowledge, examples:agent.examples });
+    const out = await streamLLM(`あなたはエージェント改善器です。現在の専門家設定と弱点を踏まえ、改善版をJSONで返す。スキーマ{"system":"","rules":[],"knowledge":"","examples":[{"q":"","a":""}]}。確実な情報だけ・創作禁止・JSONのみ。`,
+      [{role:"user",content:`現在の設定:\n${cur}\n\n指摘された弱点:\n${(weaknesses||[]).map(w=>"- "+w).join("\n")}\n\nこれらを補強した改善版を出力。`}], ()=>{}, {jsonMode:true});
+    const r = JSON.parse(extractJSON(out));
+    if(r.system) agent.system=String(r.system).slice(0,4000);
+    if(Array.isArray(r.rules)&&r.rules.length) agent.rules=r.rules.map(String).slice(0,12);
+    if(r.knowledge){ const latest=(agent.knowledge.match(/\n*##\s*最新情報[\s\S]*$/)||[""])[0]; agent.knowledge=String(r.knowledge).slice(0,4000)+latest; }
+    if(Array.isArray(r.examples)&&r.examples.length) agent.examples=r.examples.filter(e=>e&&e.q&&e.a).map(e=>({q:String(e.q).slice(0,300),a:String(e.a).slice(0,800)})).slice(0,6);
+    saveAgents(); return agent;
+  } finally { tempOverride=null; maxTokOverride=null; }
+}
+
+/* ================= ⑤ 文章AI判定・デザイン提案: stop-slop / taste-skill を学習 ================= */
+// 出典: GitHub hardikpandya/stop-slop(AI文体の検出) / Leonxlnx/taste-skill(デザイン審美)
+const SLOP_RULES =
+`# 反slopルール(出典: hardikpandya/stop-slop)
+- 前置き(「実は」「結論から言うと」「ここで重要なのは」/ "here's the thing/what/why" 等)を削り、要点を直接述べる。
+- 副詞・強調語(really/just/literally/genuinely/actually/非常に/とても/しっかり/まさに/本当に 等)を削る。
+- 受動態を避け、必ず人間の主語が動作する能動態に。無生物に人間の動詞を負わせない(「決定が生まれる」→誰が決めたかを書く)。
+- 二項対比の定型(「Xではなく、Yだ」/ "not X, it's Y")や否定列挙(rhetorical striptease)を使わず、Yを直接述べる。
+- 具体的に。曖昧な断定(「影響は大きい」「理由は構造的だ」)を避け、その具体を名指す。every/always/never の乱用も避ける。
+- 読者を場面に入れる(「人々は」より「あなたは」)。抽象より具体。
+- リズムを変える。文の長さを混ぜる。三つ並びより二つ。段落の終わりを毎回決め台詞にしない。
+- em-dash(—)を使わない。引用句っぽい決め台詞を作らない。読者を信頼し、過剰な手取り足取り・正当化・前置きをしない。
+- 採点軸(各1-10、合計35/50未満なら直す): 直接性 / リズム / 信頼 / 真正性(人間らしさ) / 密度(削れる所は削る)。`;
+const TASTE_RULES =
+`# デザインの審美ルール(出典: Leonxlnx/taste-skill)
+- まず「ブリーフを読む」: ページ種別 / ヴァイブ語 / 参照 / 対象読者 / 既存ブランド資産 / 静かな制約(アクセシビリティ・公共・規制)。対象読者が美学を決める(作り手の好みではない)。
+- 最初に一行の「Design Read」を宣言:「これは〈ページ種別〉×〈読者〉向け、〈ヴァイブ〉な言語、〈デザインシステム/美学〉寄り」。
+- 三つのダイヤルを設定: DESIGN_VARIANCE(1=対称〜10=混沌) / MOTION_INTENSITY(1=静的〜10=映画的) / VISUAL_DENSITY(1=余白〜10=高密度)。既定 8/6/4。ミニマル=5-6/3-4/2-3、プレミアム=7-8/5-7/3-4、実験的=9-10/8-10/3-4、信頼重視=3-4/2-3/4-5。
+- 反デフォルト規律(AIの既定を避ける): 文脈と関係のない装飾、説明だけで終わる構成、操作を邪魔する演出、どの画面にも同じ部品を並べるだけの構成を避ける。用途ごとの注意点に言い換える。
+- 正しい基盤を選ぶ: 企業SaaS=Fluent/Material/Carbon、公共=GOV.UK/USWDS、現代SaaS=Tailwind v4+shadcn等。美学(ブルータリズム/エディトリアル/ベント/グラス)は素のCSSで正直に実装。1プロジェクト1システム・1アイコンファミリ。
+- タイポグラフィ・余白・階層・モーションで差をつけ、テンプレ感を消す。`;
+// AI痕跡の検出パターン(英語=stop-slop由来 + 日本語のAI定型)
+const WRITER_AI_CORPUS = [
+  "そのため","例えば","一方で","だからこそ","このように","近年","現代社会","今後","また","さらに",
+  "まず","次に","最後に","第一に","第二に","したがって","なぜなら","つまり","すなわち","具体的には",
+  "ただし","なお","一方","他方","これに対して","とりわけ","加えて","その結果","それゆえ",
+  "このため","これにより","以上のことから","このことから","前述の通り","これらを踏まえ","その背景には",
+  "重要である","必要がある","求められる","不可欠","望ましい","と考えられる","といえる","とされている",
+  "期待される","懸念される","指摘されている","挙げられる","生じる","果たす","高める","促進する",
+  "実施する","構築する","取り組む","展開する","導入する","整備する","強化する","維持する","確保する",
+  "すべきである","べきである","ことが重要","しなければならない","ことができる","せざるを得ない",
+  "ことが求め","を目的として","に向けて","を踏まえた","に際して","影響","効率","活用","可能性",
+  "課題","原因","対策","実現","社会","問題","背景","要因","効果","変化","改善","発展","認識",
+  "意義","基盤","推進","支援","観点","側面","視点","持続可能性","透明性","公平性","多様性",
+  "体制","枠組み","プロセス","メカニズム","システム","格差","脆弱性","リスク","ガバナンス",
+  "イノベーション","本質的","根本的","抜本的","横断的","総合的","網羅的","体系的","包括的",
+  "段階的","社会的意義","政策的","対応策","解決策","改善策","防止策","代替案","施策",
+  "エビデンス","アプローチ","フレームワーク","されている","される","とされ","求められ","期待され",
+  "懸念され","考えられ","指摘され","挙げられ","において","に基づき","を踏まえて","の観点から",
+  "を通じて","に関して","に関する","に伴う","に資する","最も","深刻な","強く","必ず","喫緊",
+  "重要な課題","明らかに","確実に","言うまでもなく","広く認識","広く普及","普遍的に","社会全体",
+  "研究によれば","データによると","一定の","相当の","適切な","十分な","効果的な","効率的な",
+  "という観点","という意味","という意義","という側面","という点において","本稿","以下に","本論",
+  "グローバル化","デジタル化","DX","AI活用"
+];
+const WRITER_HUMAN_CORPUS = [
+  "私は","自分","私が","私の","僕","俺","わたし","うち","おれ","かもしれない","と思う",
+  "と感じる","気がする","私の場合","少し","まだ","うまく言えない","たぶん","おそらく",
+  "ような気がした","はっきりしない","よくわからない","なんとなく","なんか","ちょっと",
+  "もしかしたら","いまいち","微妙に","ぼんやり","昨日","今日","去年","学校","授業",
+  "部活","職場","地域","友人","家族","経験","見た","聞いた","調べた","失敗","迷った",
+  "困った","驚いた","気づいた","実際に","あのとき","あの日","先生","クラス","バイト",
+  "子供の頃","高校生のとき","近所の","コンビニ","電車","スマホ","ゲーム","友達と","一緒に",
+  "家族と","みんな","面白かった","楽しかった","嬉しかった","悲しかった","びっくりした",
+  "ドキドキした","好きだ","嫌いだ","怖かった","恥ずかしかった","感動した","もやもやした",
+  "焦った","ほっとした","泣きそうだった","イライラした","ワクワクした","がっかりした",
+  "腹が立った","やばかった","すごかった","めちゃくちゃ","笑えた","笑っちゃった","泣けた",
+  "だと思う","だと感じた","ではないかと","だろうか","かなと思う","じゃないかな","って感じで",
+  "やっぱり","すごく","めっちゃ","わりと","けっこう","いつも","よく","たまに","最近",
+  "このごろ","ある日","はじめて","ほんとに","まじで","っていうか","というか","みたいな",
+  "なんで","どうして","なぜか","どうなんだろう","どうすれば","そういえば","ところで",
+  "ちなみに","それで","まあ","とにかく","なんとか","どうにか","一生懸命","がんばって",
+  "ふと","いつのまにか","気がついたら","振り返ると","考えてみると","うっかり","ぼーっと"
+];
+const WRITER_AI_CANDIDATE_POOL = [
+  "において","に関して","を踏まえ","の観点から","を通じ","に基づき","これらの","上記の",
+  "前述の","当該","各種の","ことが重要","ことが必要","する必要が","すべきである","べきである",
+  "されなければ","しなければならない","ことが可能","可能となる","実現できる","を目的として",
+  "に向けて","に際して","広く認識","社会全体として","社会的文脈","政策的観点","一定の水準",
+  "適切な対応","十分な情報","効果的な施策","が挙げられる","が考えられる","が指摘される",
+  "が求められる","が期待される","に伴う変化","に起因する","から生じる課題","に資する取り組み",
+  "に寄与する","エビデンスに基づ","アプローチとして","フレームワークを","持続可能な社会",
+  "包括的な取り組み","体系的な整備","網羅的な対応","本質的な課題","根本的な解決","抜本的な改革",
+  "総合的に勘案","体系的に整理","効果的に活用","ステークホルダー","ガバナンス","コンプライアンス",
+  "イノベーション","パラダイムシフト","エコシステム","に鑑みると","に照らして","を念頭に置き",
+  "を前提として","重要性が増して","必要性が高まって","喫緊の課題","相互連携","官民一体"
+];
+const WRITER_HUMAN_CANDIDATE_POOL = [
+  "なんか思った","ちょっとだけ","思いきって","なんとなく感じ","正直言って","自分なりに考え",
+  "気がするんだけど","かもって思って","じゃないかなと","でもさ","だってさ","まあでも",
+  "やっぱり思う","初めて知ったとき","知らなかった","びっくりしたのは","友達に言われ",
+  "家族に話した","先生に聞いた","今日のこと","昨日のこと","子供の頃のこと","好きなんだよね",
+  "苦手で","実はさ","てか","というか","みたいな感じで","もやもやした気持ち","ふと思って",
+  "なぜかわからないけど","気がついたら","振り返ると","とにかく頑張って","どうにかしなきゃ",
+  "ほんとに","まじで","うーん","えーと","そういえば","笑えた","泣けた","困っちゃって",
+  "焦っちゃって","ふだんは","その日は特別","うまくいった","失敗してしまった","だったかな",
+  "だったような気がする","みんなと","家で","家族と一緒に","ドキドキして","わくわくしながら",
+  "でも違うな","なんかちょっと","変な感じ","不思議な気持ち"
+];
+const SLOP_TELLS = [
+  { cat:"前置き", re:/here'?s (the thing|what|why|how|the problem)|the (uncomfortable )?truth is|it turns out|let me be clear|make no mistake|at the end of the day|when it comes to|in a world where|it'?s worth noting|at its core/gi },
+  { cat:"副詞・強調", re:/\b(really|just|literally|genuinely|honestly|simply|actually|deeply|truly|fundamentally|inherently|inevitably|interestingly|importantly|crucially)\b/gi },
+  { cat:"ジャーゴン", re:/\b(game-?changer|deep dive|circle back|double down|lean into|moving forward|unpack|leverage|delve)\b/gi },
+  { cat:"二項対比", re:/\bnot (just )?[\w' ]{1,30}?,? (but|it'?s|it is)\b|isn'?t [\w' ]{1,30}?\. it'?s|the answer isn'?t/gi },
+  { cat:"曖昧な断定", re:/the (implications|reasons|stakes|consequences|reality) (are|is)\b/gi },
+  { cat:"前置き(JP)", re:/結論から(言うと|申し上げると)|まず(最初に|はじめに)|ここで(重要|大切)なのは|ポイントは|鍵となるのは/g },
+  { cat:"AI定型(JP)", re:/ではないでしょうか|と言えるでしょう|と言えます|ではないかと思います|してみてはいかがでしょうか|していきましょう|いかがでしたか/g },
+  { cat:"副詞・強調(JP)", re:/非常に|とても|まさに|本当に|しっかりと?|きちんと|しっかり|確かに|まさしく/g },
+  { cat:"締め定型(JP)", re:/まとめると|最後に、|いずれにせよ|総じて|つまるところ/g },
+];
+function writerLoadJSON(key, fallback){ return safeJsonLoad(key, fallback); }
+let writerLearnedAiCorpus = writerLoadJSON("mind.writer.aiCorpus", []);
+let writerLearnedHumanCorpus = writerLoadJSON("mind.writer.humanCorpus", []);
+let writerFeedbackLogs = writerLoadJSON("mind.writer.feedback", []);
+let writerSurveyState = writerLoadJSON("mind.writer.survey", { auto:true, samples:[], humanTraits:{}, aiTraits:{}, mixedTraits:{}, memo:"" });
+function writerSaveLearning(){
+  safeStore("mind.writer.aiCorpus", JSON.stringify(writerLearnedAiCorpus.slice(-300)));
+  safeStore("mind.writer.humanCorpus", JSON.stringify(writerLearnedHumanCorpus.slice(-300)));
+  safeStore("mind.writer.feedback", JSON.stringify(writerFeedbackLogs.slice(0,80)));
+  safeStore("mind.writer.survey", JSON.stringify({
+    auto: writerSurveyState.auto !== false,
+    samples: (writerSurveyState.samples||[]).slice(0,120),
+    humanTraits: writerSurveyState.humanTraits || {},
+    aiTraits: writerSurveyState.aiTraits || {},
+    mixedTraits: writerSurveyState.mixedTraits || {},
+    memo: String(writerSurveyState.memo || "").slice(0,1200)
+  }));
+}
+function writerAiCorpus(){ return WRITER_AI_CORPUS.concat(writerLearnedAiCorpus); }
+function writerHumanCorpus(){ return WRITER_HUMAN_CORPUS.concat(writerLearnedHumanCorpus); }
+function writerClamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+function writerSigmoid(x, center, steepness){ return 1 / (1 + Math.exp(-steepness * (x - center))); }
+function writerSentences(text){
+  return String(text||"").replace(/\n+/g, " ").split(/(?<=[。！？!?])|(?<=\.)\s+/).map(s=>s.trim()).filter(Boolean);
+}
+function writerTermMatches(text, terms){
+  const t = String(text||"");
+  return terms.filter(term => term && t.includes(term));
+}
+function writerRegexCount(text, re){
+  const m = String(text||"").match(re);
+  return m ? m.length : 0;
+}
+function writerTokenStats(text){
+  const chunks = String(text||"").match(/[一-龯ぁ-んァ-ヶー]{2,}|[A-Za-z]{2,}|\d+/g) || [];
+  const tokens = [];
+  for (const c of chunks) {
+    if (c.length <= 8) tokens.push(c);
+    else for (let i=0; i<c.length-1; i+=2) tokens.push(c.slice(i, Math.min(i+4, c.length)));
+  }
+  const n = tokens.length || 1;
+  const unique = new Set(tokens).size;
+  return { tokens, total:n, ttr:unique/n, avgLen:tokens.reduce((a,b)=>a+b.length,0)/n };
+}
+function writerHabitFeatures(text){
+  const t = String(text||"");
+  const sents = writerSentences(t);
+  const sf = writerSentenceStats(sents);
+  const tok = writerTokenStats(t);
+  const feats = {};
+  const add = (k, v=true)=>{ if(v) feats[k]=true; };
+  add("短文多め", sents.length && sf.avg < 28);
+  add("長文多め", sf.avg > 58);
+  add("文長ばらつき", sents.length >= 3 && sf.cv > .45);
+  add("文長均一", sents.length >= 4 && sf.cv < .26);
+  add("一人称", /私|自分|僕|俺|わたし|うち|おれ/.test(t));
+  add("緩衝表現", /と思う|感じる|かもしれない|気がする|ではないか|だろうか|かなと思う|じゃないかな/.test(t));
+  add("口語", /なんか|ちょっと|やっぱり|めっちゃ|ほんと|まじ|っていうか|というか|みたいな|まあ|でも/.test(t));
+  add("具体場面", /昨日|今日|去年|学校|授業|職場|友人|家族|あのとき|あの日|先生|クラス|バイト|近所|電車|コンビニ|実際に/.test(t));
+  add("感情語", /嬉し|悲し|怖|楽しかった|面白|びっくり|焦|ほっと|ワクワク|イライラ|好き|嫌い|感動/.test(t));
+  add("疑問文", /[？?]|だろうか|のか|なのか|ではないか|のでしょうか/.test(t));
+  add("受け身", /されている|される|られる|とされ|求められ|考えられ|指摘され|挙げられ/.test(t));
+  add("形式文", /である|といえる|と言える|ことができる|必要がある|重要である|求められる|すべき|べきである/.test(t));
+  add("接続詞多め", writerRegexCount(t, /そのため|したがって|つまり|すなわち|また|さらに|一方で|このように|具体的には|例えば/g) >= Math.max(2, sents.length * .35));
+  add("抽象語多め", writerRegexCount(t, /影響|効率|活用|可能性|課題|原因|対策|実現|社会|問題|背景|要因|効果|改善|発展|認識|意義|基盤|推進|支援|観点|側面|視点/g) >= Math.max(2, sents.length));
+  add("カタカナ多め", (t.match(/[ァ-ヶーｦ-ﾟ]{3,}/g)||[]).length >= Math.max(2, sents.length));
+  add("語彙多様", tok.ttr > .82 && tok.total > 12);
+  add("語彙反復", tok.ttr < .52 && tok.total > 18);
+  return feats;
+}
+function writerFeatureList(text){ return Object.keys(writerHabitFeatures(text)); }
+function writerTextKey(text){
+  const s = String(text||"").replace(/\s+/g,"").slice(0,4000);
+  let h = 2166136261;
+  for (let i=0; i<s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h>>>0).toString(36);
+}
+function writerBumpTrait(bag, key, n){ bag[key] = Math.max(0, Math.min(99, (bag[key]||0) + n)); }
+function writerHabitAdjustment(text){
+  if (writerSurveyState.auto === false) return { shift:0, matched:[], confidence:0 };
+  const key = writerTextKey(text);
+  const exact = (writerSurveyState.samples||[]).find(s=>s.key === key && /^(human|ai|mixed)$/.test(s.expected));
+  const feats = writerHabitFeatures(text);
+  const matched = [];
+  let shift = 0, strength = 0;
+  for (const k of Object.keys(feats)) {
+    const h = (writerSurveyState.humanTraits||{})[k] || 0;
+    const a = (writerSurveyState.aiTraits||{})[k] || 0;
+    const m = (writerSurveyState.mixedTraits||{})[k] || 0;
+    if (h || a || m) matched.push(`${k}(人${h}/AI${a}/混${m})`);
+    shift += (a - h) * 2.4 + m * .35;
+    strength += h + a + m;
+  }
+  shift = writerClamp(Math.round(shift), -28, 28);
+  return { shift, matched:matched.slice(0,8), confidence:writerClamp(strength,0,100), exact:exact ? exact.expected : "" };
+}
+function writerSurveySummary(){
+  const samples = writerSurveyState.samples || [];
+  const human = samples.filter(s=>s.expected==="human").length;
+  const ai = samples.filter(s=>s.expected==="ai").length;
+  const mixed = samples.filter(s=>s.expected==="mixed").length;
+  return { total:samples.length, human, ai, mixed, auto:writerSurveyState.auto!==false };
+}
+function writerSentenceStats(sentences){
+  const lens = sentences.map(s=>s.length);
+  const avg = lens.reduce((a,b)=>a+b,0) / Math.max(lens.length,1);
+  const sd = Math.sqrt(lens.reduce((a,b)=>a+(b-avg)*(b-avg),0) / Math.max(lens.length,1));
+  const ends = sentences.map(s=>s.slice(-4));
+  const starts = sentences.map(s=>s.slice(0,4));
+  return {
+    avg, sd, cv:avg ? sd/avg : 0,
+    endDiversity:new Set(ends).size/Math.max(ends.length,1),
+    startDiversity:new Set(starts).size/Math.max(starts.length,1),
+    longRatio:lens.filter(l=>l>62).length/Math.max(lens.length,1),
+    lens
+  };
+}
+function writerPatternHits(text){
+  const hits = [];
+  for (const tell of SLOP_TELLS) {
+    const re = new RegExp(tell.re.source, tell.re.flags);
+    let m, n = 0;
+    while ((m = re.exec(text)) !== null) {
+      hits.push({ cat:tell.cat, text:m[0], index:m.index });
+      if (!re.global) break;
+      if (m.index === re.lastIndex) re.lastIndex++;
+      if (++n > 60) break;
+    }
+  }
+  return hits;
+}
+function writerSentenceScore(sent){
+  const s = String(sent||"");
+  if (!s.trim()) return 0;
+  const aiTerms = writerTermMatches(s, writerAiCorpus());
+  const humanTerms = writerTermMatches(s, writerHumanCorpus());
+  const slopHits = writerPatternHits(s);
+  const passive = writerRegexCount(s, /されている|される|されました|られる|とされ|求められ|考えられ|指摘され|挙げられ|期待され|懸念され/g);
+  const formal = writerRegexCount(s, /である|といえる|と言える|ことができる|必要がある|重要である|求められる|すべき|べきである|と考えられる|とされている/g);
+  const connector = writerRegexCount(s, /そのため|したがって|つまり|すなわち|さらに|また|一方で|このように|具体的には|以上のことから/g);
+  const personal = writerRegexCount(s, /私|自分|僕|俺|わたし|うち|と思う|感じる|かもしれない|気がする/g);
+  let score = 30 + aiTerms.length*7 + slopHits.length*11 + passive*8 + formal*9 + connector*6 - humanTerms.length*6 - personal*7;
+  if (/^(近年|現代|今日|昨今|本稿|一般的に)/.test(s)) score += 12;
+  if (s.length > 75) score += 5;
+  if (humanTerms.length && !aiTerms.length && !slopHits.length) score -= 12;
+  return Math.round(writerClamp(score, 3, 98));
+}
+function writerExtractCandidates(text, expected){
+  const corpus = expected === "ai" ? writerAiCorpus() : writerHumanCorpus();
+  const pool = expected === "ai" ? WRITER_AI_CANDIDATE_POOL : WRITER_HUMAN_CANDIDATE_POOL;
+  const found = pool.filter(term => text.includes(term) && !corpus.includes(term));
+  const clean = String(text||"").replace(/[。、！？!?\s\n「」『』（）()\r\t]/g, "");
+  const grams = {};
+  for (let len=3; len<=6; len++) {
+    for (let i=0; i<=clean.length-len; i++) {
+      const g = clean.slice(i, i+len);
+      if (/^[0-9a-zA-Z]+$/.test(g)) continue;
+      grams[g] = (grams[g] || 0) + 1;
+    }
+  }
+  const novel = Object.entries(grams)
+    .filter(([g,c]) => c >= 2 && !corpus.some(e => e.includes(g) || g.includes(e)))
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([g]) => g);
+  return [...new Set(found.concat(novel))].slice(0, 24);
+}
+function writerLearnFrom(text, expected, opts={}){
+  const candidates = expected === "mixed" ? [] : writerExtractCandidates(text, expected);
+  if (expected === "ai") writerLearnedAiCorpus = [...new Set(writerLearnedAiCorpus.concat(candidates))].slice(-300);
+  else if (expected === "human") writerLearnedHumanCorpus = [...new Set(writerLearnedHumanCorpus.concat(candidates))].slice(-300);
+  const score = slopScan(text).ai;
+  const autoTraits = writerFeatureList(text);
+  const manualTraits = Array.isArray(opts.traits) ? opts.traits.map(String).filter(Boolean) : [];
+  const traits = [...new Set(autoTraits.concat(manualTraits))].slice(0,30);
+  const bag = expected === "ai" ? (writerSurveyState.aiTraits ||= {}) : expected === "mixed" ? (writerSurveyState.mixedTraits ||= {}) : (writerSurveyState.humanTraits ||= {});
+  if (opts.learnHabit !== false) traits.forEach(k=>writerBumpTrait(bag, k, manualTraits.includes(k) ? 2 : 1));
+  const memo = String(opts.memo || "").trim();
+  if (memo) writerSurveyState.memo = [memo, writerSurveyState.memo || ""].filter(Boolean).join("\n").slice(0,1200);
+  writerSurveyState.samples = [{
+    expected, key:writerTextKey(text), score, added:candidates.length, traits, memo, date:new Date().toLocaleString("ja-JP"), sample:String(text||"").slice(0,100)
+  }].concat(writerSurveyState.samples || []).slice(0,120);
+  writerFeedbackLogs = [{ expected, score, added:candidates.length, traits:traits.slice(0,8), date:new Date().toLocaleString("ja-JP"), sample:String(text||"").slice(0,60) }].concat(writerFeedbackLogs).slice(0,80);
+  writerSaveLearning();
+  return { added:candidates.length, score, candidates, traits };
+}
+function slopScan(text){
+  const t = (text||"").trim();
+  if (!t) return { ai:0, human:100, hits:[], notes:["(空)"], evidence:[], sentScores:[], metrics:{ confidence:0, verdict:"空" } };
+  const sentences = writerSentences(t);
+  const sf = writerSentenceStats(sentences);
+  const tok = writerTokenStats(t);
+  const slopHits = writerPatternHits(t);
+  const aiTerms = writerTermMatches(t, writerAiCorpus());
+  const humanTerms = writerTermMatches(t, writerHumanCorpus());
+  const emdash = writerRegexCount(t, /—/g);
+  const passiveCount = writerRegexCount(t, /されている|される|されました|られる|とされ|求められ|考えられ|指摘され|挙げられ|期待され|懸念され/g);
+  const formalCount = writerRegexCount(t, /である|といえる|と言える|と言えます|ことができる|必要がある|重要である|求められる|すべき|べきである|と考えられる|とされている/g);
+  const personalCount = writerRegexCount(t, /私|自分|僕|俺|わたし|うち|おれ/g);
+  const hedgeCount = writerRegexCount(t, /と思う|と感じる|かもしれない|気がする|ではないか|だろうか|かなと思う|じゃないかな/g);
+  const deicticCount = writerRegexCount(t, /昨日|今日|去年|学校|授業|職場|友人|家族|あのとき|あの日|先生|クラス|バイト|近所|電車|コンビニ|実際に/g);
+  const connectorCount = writerRegexCount(t, /そのため|したがって|なぜなら|つまり|すなわち|また|さらに|ただし|なお|一方|他方|とりわけ|加えて|その結果|それゆえ|このため|これにより|以上のことから|このことから|これらを踏まえ|具体的には|例えば|一方で/g);
+  const listCount = writerRegexCount(t, /まず|次に|最後に|第一に|第二に|第三に|前者|後者|一つ目|二つ目|三つ目/g);
+  const abstractCount = writerRegexCount(t, /影響|効率|活用|可能性|課題|原因|対策|実現|社会|問題|背景|要因|効果|改善|発展|認識|意義|基盤|推進|支援|観点|側面|視点|透明性|公平性|多様性|体制|枠組み|プロセス|メカニズム/g);
+  const katakanaCount = (t.match(/[ァ-ヶーｦ-ﾟ]{3,}/g)||[]).length;
+  const hasAiOpening = /^(近年|現代|今日|昨今|本稿|グローバル|急速に|一般的に)/.test(sentences[0] || "");
+  const rhetQCount = sentences.filter(s => /だろうか$|のか$|ではないか$|なのか$|のでしょうか$|のだろうか$/.test(s.replace(/[。！？!?]/g,"").trim())).length;
+  const aiWeight = aiTerms.reduce((sum,term)=>sum + (term.length >= 5 ? 1.15 : 0.75), 0);
+  const humanWeight = humanTerms.reduce((sum,term)=>sum + (term.length >= 5 ? 1.15 : 0.85), 0);
+  const corpusSignal = aiWeight / Math.max(aiWeight + humanWeight + 1.0, 1);
+  const slopSignal = Math.min((slopHits.length + emdash*1.2) / Math.max(sentences.length*0.9, 1), 1);
+  const passiveSignal = Math.min(passiveCount / Math.max(sentences.length*0.18, 1), 1);
+  const formalSignal = Math.min(formalCount / Math.max(sentences.length*0.35, 1), 1);
+  const personalSignal = Math.max(0, 1 - (personalCount + hedgeCount) / Math.max(sentences.length*0.65, 1));
+  const rhythmSignal = sentences.length >= 4 ? Math.max(0, 1 - sf.cv / 0.42) : 0.35;
+  const endMonoSignal = Math.max(0, 1 - sf.endDiversity);
+  const lexSignal = Math.max(0, 1 - tok.ttr / 0.76);
+  const abstractSignal = Math.min(abstractCount / Math.max(sentences.length*1.15, 1), 1);
+  const deicticSignal = Math.max(0, 1 - deicticCount / Math.max(sentences.length*0.28, 1));
+  const connectorSignal = Math.min(connectorCount / Math.max(sentences.length*0.55, 1), 1);
+  const listSignal = Math.min(listCount / 3, 1);
+  const rhetQSignal = Math.max(0, 1 - rhetQCount / Math.max(sentences.length*0.2, 0.8));
+  const openingSignal = hasAiOpening ? 0.9 : 0.1;
+  const katakanaSignal = Math.min(katakanaCount / Math.max(sentences.length*0.75, 1), 1);
+  const weights = {
+    corpus:.20, slop:.12, passive:.08, formal:.09, personal:.09, rhythm:.07, endMono:.04,
+    lex:.04, abstract:.06, deictic:.04, connector:.07, list:.05, rhetQ:.04, opening:.05, katakana:.06
+  };
+  const raw =
+    corpusSignal*weights.corpus + slopSignal*weights.slop + passiveSignal*weights.passive +
+    formalSignal*weights.formal + personalSignal*weights.personal + rhythmSignal*weights.rhythm +
+    endMonoSignal*weights.endMono + lexSignal*weights.lex + abstractSignal*weights.abstract +
+    deicticSignal*weights.deictic + connectorSignal*weights.connector + listSignal*weights.list +
+    rhetQSignal*weights.rhetQ + openingSignal*weights.opening + katakanaSignal*weights.katakana;
+  let ai = Math.round(writerSigmoid(raw, 0.39, 7.8) * 100);
+  if (t.length < 80) ai = Math.round(ai*0.72 + Math.min(55, (slopHits.length + aiTerms.length)*8)*0.28);
+  const habit = writerHabitAdjustment(t);
+  ai = writerClamp(ai + habit.shift, 1, 99);
+  if (habit.exact === "human") ai = Math.min(ai, 28);
+  else if (habit.exact === "ai") ai = Math.max(ai, 72);
+  else if (habit.exact === "mixed") ai = writerClamp(ai, 42, 56);
+  ai = writerClamp(ai, 1, 99);
+  const confidence = Math.round(writerClamp(34 + Math.log(Math.max(t.length,1))*7 + sentences.length*3, 30, 96));
+  const tooShort = t.length < 80 || sentences.length < 2;
+  const verdict = (tooShort || confidence < 48) ? "短文・保留" : ai >= 58 ? "AI寄り" : ai <= 35 ? "人間寄り" : "混合・要確認";
+  const sentScores = sentences.map((s,i)=>({ idx:i, sent:s, score:writerSentenceScore(s) }));
+  const decomp = [
+    { label:"AI語彙類似", val:Math.round(corpusSignal*100), weight:weights.corpus, tone:"ai" },
+    { label:"定型/副詞", val:Math.round(slopSignal*100), weight:weights.slop, tone:"ai" },
+    { label:"受け身", val:Math.round(passiveSignal*100), weight:weights.passive, tone:"tone" },
+    { label:"形式的述語", val:Math.round(formalSignal*100), weight:weights.formal, tone:"tone" },
+    { label:"主観欠如", val:Math.round(personalSignal*100), weight:weights.personal, tone:"ai" },
+    { label:"文長均一", val:Math.round(rhythmSignal*100), weight:weights.rhythm, tone:"tone" },
+    { label:"抽象語密度", val:Math.round(abstractSignal*100), weight:weights.abstract, tone:"ai" },
+    { label:"接続詞過多", val:Math.round(connectorSignal*100), weight:weights.connector, tone:"ai" },
+    { label:"具体語欠如", val:Math.round(deicticSignal*100), weight:weights.deictic, tone:"tone" },
+    { label:"カタカナ率", val:Math.round(katakanaSignal*100), weight:weights.katakana, tone:"tone" },
+    { label:"癖補正", val:habit.shift, weight:0, tone:habit.shift>0?"ai":habit.shift<0?"human":"tone" }
+  ];
+  const notes = [];
+  if (aiTerms.length) notes.push(`AI語彙 ${aiTerms.length}件`);
+  if (slopHits.length) {
+    const byCat={}; slopHits.forEach(h=>{ byCat[h.cat]=(byCat[h.cat]||0)+1; });
+    Object.entries(byCat).slice(0,5).forEach(([c,n])=>notes.push(`${c} ${n}件`));
+  }
+  if (passiveCount) notes.push(`受け身 ${passiveCount}件`);
+  if (formalCount) notes.push(`形式的述語 ${formalCount}件`);
+  if (connectorCount >= 2) notes.push(`接続詞 ${connectorCount}件`);
+  if (sentences.length >= 4 && rhythmSignal > .55) notes.push("文の長さが均一");
+  if (humanTerms.length) notes.push(`人間味シグナル ${humanTerms.length}件`);
+  if (habit.exact) notes.push(`既知サンプル: ${habit.exact==="human"?"人間文":habit.exact==="ai"?"AI文":"混合"}`);
+  if (habit.shift) notes.push(`癖補正 ${habit.shift>0?"+":""}${habit.shift}`);
+  if (confidence < 55) notes.push("短文のため信頼度低め");
+  const evidence = [];
+  sentScores.filter(s=>s.score>=62).slice(0,4).forEach(s=>evidence.push({ type:"ai", label:"文別AI度", reason:`「${s.sent.slice(0,34)}${s.sent.length>34?"…":""}」が ${s.score}%`, sentIdx:s.idx }));
+  if (aiTerms.length) evidence.push({ type:"ai", label:"AI語彙", reason:aiTerms.slice(0,8).join("、"), sentIdx:0 });
+  if (slopHits.length) evidence.push({ type:"ai", label:"定型表現", reason:slopHits.slice(0,8).map(h=>h.text).join("、"), sentIdx:0 });
+  if (passiveCount || formalCount) evidence.push({ type:"tone", label:"説明文調", reason:`受け身 ${passiveCount}件 / 形式的述語 ${formalCount}件`, sentIdx:0 });
+  if (connectorCount >= 2 || listCount >= 2) evidence.push({ type:"tone", label:"構成が整いすぎ", reason:`接続詞 ${connectorCount}件 / 列挙 ${listCount}件`, sentIdx:0 });
+  if (personalCount + hedgeCount === 0 && sentences.length >= 2) evidence.push({ type:"ai", label:"書き手の視点なし", reason:"私・自分・思う・かもしれない等の揺れが見当たりません", sentIdx:0 });
+  if (humanTerms.length) evidence.push({ type:"human", label:"人間味シグナル", reason:humanTerms.slice(0,8).join("、"), sentIdx:0 });
+  if (habit.exact) evidence.push({ type:habit.exact==="ai"?"ai":habit.exact==="human"?"human":"tone", label:"フィードバック正解を優先", reason:`同一文章は過去に「${habit.exact==="human"?"人間文":habit.exact==="ai"?"AI文":"混合"}」として登録されています`, sentIdx:0 });
+  if (habit.shift) evidence.push({ type:habit.shift>0?"ai":"human", label:"癖プロファイル反映", reason:`${habit.shift>0?"AI寄り":"人間寄り"}に ${Math.abs(habit.shift)} 補正: ${habit.matched.join("、")}`, sentIdx:0 });
+  if (confidence < 55) evidence.push({ type:"tone", label:"判定保留", reason:"短文は誤判定しやすいため、長めの本文で再判定してください", sentIdx:0 });
+  if (!evidence.length) evidence.push({ type:"human", label:"強いAI痕跡なし", reason:"定型語・構文・リズムの偏りは小さめです", sentIdx:0 });
+  const hits = slopHits.concat(aiTerms.slice(0,30).map(term=>({ cat:"AI語彙", text:term })));
+  return { ai, human:100-ai, hits:hits.slice(0,80), notes, evidence, sentScores, decomp, metrics:{
+    verdict, confidence, unnatural:Math.round(writerSigmoid((rhythmSignal+endMonoSignal+passiveSignal+formalSignal+connectorSignal)/5, .42, 7)*100),
+    fluctuation:Math.round(writerClamp((1-rhythmSignal)*35 + (1-endMonoSignal)*22 + tok.ttr*20 + (personalCount+hedgeCount)*7 + deicticCount*5, 0, 100)),
+    aiTerms:aiTerms.length, humanTerms:humanTerms.length, passiveCount, formalCount, connectorCount, listCount, abstractCount,
+    habitShift:habit.shift, habitMatched:habit.matched, habitConfidence:habit.confidence, habitExact:habit.exact,
+    sentences:sentences.length, chars:t.length, ttr:tok.ttr, raw:Math.round(raw*100), engine:"多軸ローカル解析"
+  } };
+}
+TOOLS.aicheck = { desc:"文章のAIっぽさを多軸判定。入力は対象テキスト", run:(x)=>{ const r=slopScan(x); return `AIっぽさ ${r.ai}/100（${r.metrics.verdict}・信頼度${r.metrics.confidence}%）。${r.notes.join(" / ")||"目立つAI痕跡なし"}${r.evidence.length?"。根拠: "+r.evidence.slice(0,4).map(e=>e.label+":"+e.reason).join(" / "):""}`; } };
+function learnWritingSkills(){   // 学習: ルールをRAGの知識へ取り込む(重複時はスキップ)
+  let added = false;
+  if (!docs.some(d=>d.src==="stop-slop")) { ingestText("stop-slop", SLOP_RULES); added = true; }
+  if (!docs.some(d=>d.src==="taste-skill")) { ingestText("taste-skill", TASTE_RULES); added = true; }
+  return added;
+}
+
+/* ---------- 会話ループ(RAG・ツール・検索・画像) ---------- */
+let busy = false;
+let pendingImage = null;   // {mime, data(base64)} マルチモーダル添付(Gemini)
+let _ragInject = "";        // 今ターンのRAG注入文(systemPromptが参照)
+async function ask(userText){
+  if (busy) return;
+  history.push({ role:"user", content:userText }); saveHist();
+  add(userText, "me");
+  voice.stop(); face.setEmotion("thinking");
+  busy = true; $("#send").style.display="none"; $("#stop").style.display="";
+  const node = add("…", "ai"); const span = node.firstChild;
+  let lastNode = node, lastSpan = span;
+  // 蒸留エージェントの即答キャッシュ(同じ質問は無料・ゼロ遅延で返す)
+  const _ag = activeAgent();
+  const _ck = _ag ? cacheKey(_ag, userText) : null;
+  if (_ck && agentCache[_ck]) {
+    const cached = agentCache[_ck];
+    span.textContent = emojify(cached);
+    history.push({ role:"assistant", content: cached }); saveHist();
+    attachFeedback(node, cached); node.dataset.cached = "1";
+    try { face.setEmotion("happy"); voice.speak(cached); } catch(e){}
+    busy = false; $("#send").style.display=""; $("#stop").style.display="none";
+    return;
+  }
+  const img = pendingImage; pendingImage = null;   // 今ターンの画像添付(消費)
+  if (img) { try{ updateAttachUI(); }catch(e){} }
+  const stripDir = (t)=> (t||"").replace(/\(\((?:SEARCH|TOOL):[\s\S]*?\)\)/gi, "").trim();
+  const DIRECTIVE = /\(\(\s*(SEARCH|TOOL)\s*:\s*([\s\S]+?)\)\)/i;
+  try {
+    _ragInject = CFG.rag ? await retrieveContext(userText) : "";   // ① 関連メモリだけを動的に注入
+    let msgs = buildMessages();
+    let resp = await streamLLM(systemPrompt(), msgs, (full)=>{ span.textContent = stripDir(full) || "…"; logEl.scrollTop=logEl.scrollHeight; }, { image: img });
+    // ② ツール/検索エージェント(最大3回)
+    let rounds = 0;
+    while ((CFG.web || CFG.tools) && DIRECTIVE.test(resp) && rounds < 3) {
+      rounds++;
+      const m = resp.match(DIRECTIVE); const kind = m[1].toUpperCase(); let label, result;
+      if (kind === "SEARCH") { if(!CFG.web){ break; } const q=m[2].trim(); label=`🔎 検索: ${q}`; result = await webSearch(q); }
+      else { if(!CFG.tools){ break; } const parts=m[2].split("|"); const name=(parts[0]||"").trim(); const input=parts.slice(1).join("|").trim(); label=`🛠 ツール: ${name}（${input}）`; result = await runTool(name, input); }
+      add(label, "tool");
+      add("📄 " + String(result).slice(0, 280) + (String(result).length>280?"…":""), "tool");
+      msgs = msgs.concat([{ role:"assistant", content: resp }, { role:"user", content:`[ツール結果]\n${result}\n\n上の結果に書かれていることだけを根拠に、最初の質問へ日本語で答えてください。結果に答えが無ければ「確かな情報は見つかりませんでした」と正直に言い、数字・固有名詞・日付・URLを創作しないでください。((SEARCH))や((TOOL))はもう使いません。` }]);
+      const node2 = add("…", "ai"); lastNode = node2; lastSpan = node2.firstChild;
+      resp = await streamLLM(systemPrompt(), msgs, (full)=>{ lastSpan.textContent = stripDir(full)||"…"; logEl.scrollTop=logEl.scrollHeight; });
+      lastSpan.textContent = stripDir(resp);
+    }
+    const finalText = stripDir(resp);
+    if (lastNode === node) span.textContent = emojify(finalText); else { node.remove(); lastSpan.textContent = emojify(finalText); }
+    if (_ck && rounds === 0 && finalText && !img) { agentCache[_ck] = finalText; saveAgentCache(); }   // 検索/画像を使わなかった専門回答だけキャッシュ
+    history.push({ role:"assistant", content: finalText }); saveHist();
+    attachFeedback(lastNode, finalText);
+    { const m=detectEmotion(finalText); if(m==="love"||m==="joyful") face.addAffection(1.2); else if(m==="happy"||m==="excited") face.addAffection(0.6); else face.addAffection(0.2); }   // 会話を重ねると少しずつ好感度↑
+    voice.speak(finalText);
+    if (++turnsSinceLearn >= 6) { turnsSinceLearn = 0; learnFromConversation(); }
+  } catch (e) {
+    if (lastNode !== node) node.remove();
+    lastSpan.textContent = "⚠ エラー: " + e.message + (e.message.includes("APIキー")?"":"  (⚙設定でプロバイダ/キー/モデルを確認してください)");
+    face.setEmotion("idle");
+  }
+  _ragInject = "";   // 次ターンへ持ち越さない
+  busy = false; $("#send").style.display=""; $("#stop").style.display="none";
+}
+
+/* ---------- 入力 ---------- */
+function send(){ let v = $("#say").value.trim();
+  if (!v && pendingImage) v = "この画像について説明してください。";   // 画像のみ送信
+  if (!v) return;
+  if (/^\/(clear|reset|cls|消去)$|^履歴(消去|クリア)$/i.test(v)) { $("#say").value=""; history=[]; saveHist(); renderHistory(); sys("会話履歴を消去しました(長期記憶・学習は保持)。コマンド: /clear /reset /消去 履歴消去"); return; }
+  $("#say").value=""; ask(v); }
+$("#send").onclick = send;
+$("#stop").onclick = ()=>{ if (abortCtl) abortCtl.abort(); voice.stop(); face.setEmotion("idle"); };
+$("#say").addEventListener("keydown", e=>{ if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
+
+/* ---------- ③ 音声入力(STT) / 画像・文書添付 ---------- */
+function updateAttachUI(){ const bar=$("#attachBar"); if(!bar) return; if(pendingImage){ bar.style.display=""; bar.innerHTML=`🖼 画像を添付中（送信で解析） <a href="#" id="attachClear" style="color:#ff8a8a">×</a>`; const c=$("#attachClear"); if(c) c.onclick=(e)=>{ e.preventDefault(); pendingImage=null; updateAttachUI(); }; } else bar.style.display="none"; }
+function ingestText(name, text){
+  const chunks=_chunk(text, name); let added=0;
+  for(const c of chunks){ docs.push({ id:"doc_"+_hash(name+c.text), text:c.text, src:name }); added++; }
+  if(added){ saveDocs(); }
+  return added;
+}
+const _SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let _recog=null, _recOn=false;
+$("#micBtn").onclick = ()=>{
+  if(!_SR){ sys("この環境は音声入力(STT)に未対応です。Chrome系でお試しください。"); return; }
+  if(_recOn){ try{_recog.stop();}catch(e){} return; }
+  _recog = new _SR(); _recog.lang="ja-JP"; _recog.interimResults=true; _recog.continuous=false;
+  _recOn=true; $("#micBtn").textContent="🔴"; face.setEmotion("excited");
+  _recog.onresult=(e)=>{ let t=""; for(let i=0;i<e.results.length;i++) t+=e.results[i][0].transcript; $("#say").value=t; };
+  _recog.onerror=()=>{}; _recog.onend=()=>{ _recOn=false; $("#micBtn").textContent="🎤"; face.setEmotion("idle"); if($("#say").value.trim()) send(); };
+  try{ _recog.start(); }catch(e){ _recOn=false; $("#micBtn").textContent="🎤"; }
+};
+$("#attachBtn").onclick = ()=> $("#attachInput").click();
+$("#attachInput").onchange = (e)=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  if(/^image\//.test(f.type)){
+    if(!SECURITY.allowedImageMimes.has(String(f.type).toLowerCase())){ sys("添付できる画像は PNG/JPEG/WebP/GIF のみです。SVG等は安全のため拒否しました。"); e.target.value=""; return; }
+    if(f.size > SECURITY.maxImageFileBytes){ sys("画像が大きすぎます。4MB以下にしてください。"); e.target.value=""; return; }
+    const rd=new FileReader(); rd.onload=()=>{ const s=String(rd.result); const comma=s.indexOf(","); pendingImage={ mime:f.type, data: comma>=0? s.slice(comma+1): s }; updateAttachUI(); }; rd.onerror=()=>sys("画像を読めませんでした。"); rd.readAsDataURL(f);
+  } else {
+    const ext=(f.name.split(".").pop()||"").toLowerCase();
+    if(!SECURITY.allowedTextExtensions.has(ext)){ sys("この種類のファイルは取り込めません。許可: txt, md, csv, json"); e.target.value=""; return; }
+    if(f.size > SECURITY.maxTextFileBytes){ sys("文書が大きすぎます。1MB以下にしてください。"); e.target.value=""; return; }
+    const name = safeFileName(f.name);
+    const rd=new FileReader(); rd.onload=()=>{ const n=ingestText(name, clipText(String(rd.result), SECURITY.maxStorageChars)); sys(n? `📎 「${name}」を ${n} 断片に分けて知識(RAG)に取り込みました。関連時に自動で参照します。` : `📎 「${name}」から取り込める文章がありませんでした。`); }; rd.onerror=()=>sys("文書を読めませんでした。"); rd.readAsText(f);
+  }
+  e.target.value="";
+};
+$("#clrBtn").onclick = ()=>{ if (confirm("会話履歴を消去しますか?(長期記憶は残ります)")){ voice.stop(); face.setEmotion("idle"); history=[]; saveHist(); renderHistory(); } };
+$("#webBtn").onclick = ()=>{ CFG.web=!CFG.web; saveCfg(); $("#webBtn").textContent = `🌐 取り込み: ${CFG.web?"ON":"OFF"}`; scheduleIngest(); if(CFG.web) fetchCloudFeed(); };
+$("#emojiBtn").onclick = ()=>{ CFG.emoji=!CFG.emoji; saveCfg(); $("#emojiBtn").textContent = `🐴 絵文字: ${CFG.emoji?"ON":"OFF"}`; renderHistory(); };
+
+/* ---------- サイドパネル(設定/記憶) ---------- */
+let sideMode = null;
+function toggleSide(mode){
+  if (sideMode === mode){ sideMode=null; $("#side").classList.remove("open"); return; }
+  sideMode = mode; $("#side").classList.add("open");
+  const el = $("#sideInner");
+  if (mode === "cfg"){
+    el.innerHTML = `<h3>脳(プロバイダ)</h3>
+      <select id="cProv">${Object.entries(PROVIDERS).map(([k,v])=>`<option value="${escAttr(k)}" ${CFG.prov===k?'selected':''}>${esc(v.name)}</option>`).join("")}</select>
+      <label>モデル名</label><input id="cModel" value="${escAttr(CFG.model||PROVIDERS[CFG.prov].model)}">
+      <label>APIエンドポイント(任意・空で既定)</label><input id="cBase" value="${escAttr(CFG.base||'')}" placeholder="${escAttr(PROVIDERS[CFG.prov].base)}">
+      <label>APIキー(このタブ内だけで使用・保存しない)</label><input id="cKey" type="password" autocomplete="off" spellcheck="false" value="${escAttr(CFG.apiKey||'')}" placeholder="必要なときだけ貼り付け">
+      <p class="${CFG.apiKey?'ok':'warn'}" id="cStat">${CFG.apiKey?'✅ キー設定済み':'⚠ キー未設定'}</p>
+      <button id="cClearSecrets" class="ghost" style="width:100%;margin:4px 0 2px">🔒 APIキー欄を消去</button>
+      <p style="font-size:11px;color:#ffb86b">セキュリティ強化のため、APIキー/TTSキーはlocalStorageへ保存しません。再読み込み後は再入力が必要です。</p>
+      <p style="font-size:11px;color:#8590a8">無料キーの取得先: <a id="keyLink" href="${escAttr(PROVIDERS[CFG.prov].key)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">${esc(PROVIDERS[CFG.prov].key)}</a></p>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:8px">🌡 ゆらぎ temperature <input id="cTemp" type="range" min="0" max="1.5" step="0.05" value="${CFG.temp!=null?CFG.temp:0.4}" style="flex:1"> <span id="cTempV" style="min-width:34px;text-align:right">${(CFG.temp!=null?CFG.temp:0.4).toFixed(2)}</span></label>
+      <p style="font-size:11px;color:#8590a8">低い(0〜0.4)=事実に忠実でブレにくい / 高い(0.8〜1.5)=自由で創造的だがハルシネーション増。正確さ重視0.3前後・雑談重視0.5前後がおすすめ。</p>
+      <h3>人格(システムプロンプト)</h3>
+      <textarea id="cPersona" rows="6" placeholder="空なら既定の人格">${esc(CFG.persona||'')}</textarea>
+      <h3>クラウド裏取り込み(任意)</h3>
+      <label>フィードURL(GitHub Actions等が生成するfeed.json)</label>
+      <input id="cFeed" value="${escAttr(CFG.feedUrl||'')}" placeholder="https://raw.githubusercontent.com/USER/REPO/main/feed.json">
+      <h3>声(TTS)</h3>
+      <label>方式</label>
+      <select id="cTtsMode"><option value="web" ${CFG.ttsMode!=="irodori"?'selected':''}>ブラウザ内蔵(無料・即時)</option><option value="irodori" ${CFG.ttsMode==="irodori"?'selected':''}>irodori-TTS(要NVIDIA GPU)</option><option value="voicevox" ${CFG.ttsMode==="voicevox"?'selected':''}>VOICEVOX / AivisSpeech(GPU不要・キャラ声)</option></select>
+      <label>エンドポイント(OpenAI互換 /v1/audio/speech)</label><input id="cTtsUrl" value="${escAttr(CFG.ttsUrl||'')}" placeholder="http://localhost:8000/v1/audio/speech">
+      <label>可愛い声(雑談・短い返事の voice)</label><input id="cTtsVoice" value="${escAttr(CFG.ttsVoice||'')}" placeholder="例: 可愛い話者名">
+      <label>低音の声(長文・真面目な回答の voice・女子or男子)</label><input id="cTtsVoiceCalm" value="${escAttr(CFG.ttsVoiceCalm||'')}" placeholder="例: 落ち着いた低音の話者(空なら上と同じ)">
+      <label>モデル</label><input id="cTtsModel" value="${escAttr(CFG.ttsModel||'')}" placeholder="irodori">
+      <label>APIキー(任意・保存しない)</label><input id="cTtsKey" type="password" autocomplete="off" spellcheck="false" value="${escAttr(CFG.ttsKey||'')}">
+      <p style="font-size:11px;color:#8590a8">irodori-TTSをローカルでOpenAI互換APIとして起動→URLを設定。雑談は可愛い声、長文・真面目な回答は低音に自動で切替(ブラウザ音声時はピッチで再現)。接続失敗時はブラウザ音声に自動フォールバック。</p>
+      <button id="cTtsTest" class="ghost" style="margin-top:4px;width:100%">🔈 irodori接続テスト(声を1回鳴らす)</button>
+      <p id="cTtsStat" style="font-size:11px;color:#8590a8;word-break:break-all"></p>
+      <label>VOICEVOX/AivisSpeech URL(自動検出・通常は触らなくてOK)</label><input id="cVvUrl" value="${escAttr(CFG.vvUrl||'http://127.0.0.1:10101')}">
+      <div style="display:flex;gap:6px;margin-top:4px"><button id="cVvAuto" class="ghost" style="flex:2">🔌 自動接続して話者一覧を取得</button><button id="cVvTest" class="ghost" style="flex:1">▶ 試聴</button></div>
+      <p id="cVvStat" style="font-size:11px;color:#8590a8;word-break:break-all"></p>
+      <label>話者(雑談・可愛い)</label><select id="cVvSpeaker"></select>
+      <label>話者(長文・低音/真面目・未選択=同じ)</label><select id="cVvSpeakerCalm"></select>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px"><input type="checkbox" id="cVvAutoChk" ${CFG.vvAuto!==false?'checked':''} style="width:auto"> 起動時に自動でTTSへ接続する</label>
+      <p style="font-size:11px;color:#8590a8">NVIDIA GPUが無くてもOK。CPUで動く <b>AivisSpeech</b>(推奨・自然なアニメ声)か <b>VOICEVOX</b> をインストールして起動しておくだけ。このアプリが起動時に自動で見つけて接続し、話者の一覧もここに出ます。CORS回避のため付属の <code>AUTONOMA.bat</code> から開くのがおすすめ。</p>
+      <h3>可愛い声プリセット(雑談用・10種)</h3>
+      <select id="cPreset">${VOICE_PRESETS.map((p,i)=>`<option value="${i}" ${CFG.voicePreset===i?'selected':''}>${i+1}. ${esc(p.name)}</option>`).join("")}</select>
+      <div style="display:flex;gap:6px;margin-top:6px"><button id="cPresetPlay" class="ghost" style="flex:1">▶ 試聴</button><button id="cPresetToDesign" class="ghost" style="flex:1">irodori登録欄へ↓</button></div>
+      <p style="font-size:11px;color:#8590a8">ブラウザ音声でも10種の声色から選べます(即反映)。irodori使用時は「irodori登録欄へ」でVoiceDesignの説明文に流し込めます。</p>
+      <h3>声を作る / 登録(irodoriへ)</h3>
+      <label>声ID(任意の名前)</label><input id="cVcId" placeholder="例: cute01 / calm_low">
+      <label>用途</label><select id="cVcSlot"><option value="voice">可愛い声に設定</option><option value="calm">低音に設定</option><option value="both">両方に設定</option><option value="none">設定しない</option></select>
+      <label>方式</label><select id="cVcMode"><option value="ref">参照音声でクローン(推奨・10秒程度)</option><option value="design">VoiceDesign プロンプト(実験的)</option></select>
+      <label id="cVcFileL">参照音声ファイル(wav/mp3/webm/ogg)</label><input id="cVcFile" type="file" accept="audio/wav,audio/x-wav,audio/mpeg,audio/mp3,audio/webm,audio/ogg">
+      <label id="cVcPromptL" style="display:none">声の説明プロンプト</label><textarea id="cVcPrompt" rows="2" placeholder="例: 明るくて可愛い女の子の声・少し高め" style="display:none"></textarea>
+      <label>登録エンドポイント(URL・404なら要変更)</label><input id="cVcRegUrl" value="${escAttr(CFG.ttsRegUrl||((CFG.ttsUrl||'').replace(/\/v1\/audio\/speech.*$/,'')+'/v1/audio/voice_contents'))}">
+      <button id="cVcReg" style="margin-top:6px;width:100%">この声を登録</button>
+      <p id="cVcStat" style="font-size:11px;color:#8590a8;word-break:break-all"></p>
+      <h3>履歴</h3>
+      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="cClear" ${CFG.clearOnLoad?'checked':''} style="width:auto"> 起動(タブを開く)たびに会話履歴を消去</label>
+      <p style="font-size:11px;color:#8590a8">コマンドでも消去可: <code>/clear</code> <code>/消去</code> <code>履歴消去</code></p>
+      <button id="cSave" style="margin-top:8px;width:100%">保存</button>`;
+    const sync = ()=>{ $("#cStat").textContent = $("#cKey").value?'✅ キー設定済み':'⚠ キー未設定'; $("#cStat").className = $("#cKey").value?'ok':'warn'; };
+    secureAnchor($("#keyLink"), PROVIDERS[CFG.prov].key);
+    $("#cProv").onchange = ()=>{ const k=$("#cProv").value; $("#cModel").value=PROVIDERS[k].model; $("#cBase").placeholder=PROVIDERS[k].base; secureAnchor($("#keyLink"), PROVIDERS[k].key); $("#keyLink").textContent=PROVIDERS[k].key; };
+    $("#cKey").oninput = sync;
+    $("#cClearSecrets").onclick = ()=>{ CFG.apiKey=""; CFG.ttsKey=""; if($("#cKey")) $("#cKey").value=""; if($("#cTtsKey")) $("#cTtsKey").value=""; saveCfg(); sync(); updateProvLabel(); sys("APIキー欄を消去しました。保存はしていません。"); };
+    if($("#cTemp")) $("#cTemp").addEventListener("input", ()=>{ CFG.temp=+$("#cTemp").value; $("#cTempV").textContent=(+$("#cTemp").value).toFixed(2); saveCfg(); });
+    $("#cSave").onclick = ()=>{ CFG.prov=$("#cProv").value; CFG.model=$("#cModel").value.trim(); CFG.base=$("#cBase").value.trim(); CFG.apiKey=$("#cKey").value.trim(); CFG.persona=$("#cPersona").value; CFG.feedUrl=$("#cFeed").value.trim(); CFG.clearOnLoad=$("#cClear").checked; CFG.ttsMode=$("#cTtsMode").value; CFG.ttsUrl=$("#cTtsUrl").value.trim(); CFG.ttsVoice=$("#cTtsVoice").value.trim(); CFG.ttsVoiceCalm=$("#cTtsVoiceCalm").value.trim(); CFG.ttsModel=$("#cTtsModel").value.trim(); CFG.ttsKey=$("#cTtsKey").value.trim(); if($("#cVcRegUrl")) CFG.ttsRegUrl=$("#cVcRegUrl").value.trim(); if($("#cVvUrl")){ CFG.vvUrl=$("#cVvUrl").value.trim(); CFG.vvSpeaker=$("#cVvSpeaker").value.trim(); CFG.vvSpeakerCalm=$("#cVvSpeakerCalm").value.trim(); } if($("#cVvAutoChk")) CFG.vvAuto=$("#cVvAutoChk").checked; saveCfg(); updateProvLabel(); fetchCloudFeed(); sys("設定を保存しました。"); };
+    /* irodori接続テスト */
+    $("#cTtsTest").onclick = async ()=>{
+      const st=$("#cTtsStat");
+      if($("#cTtsMode").value==="voicevox"){
+        const base=($("#cVvUrl").value.trim()||CFG.vvUrl||"http://localhost:50021").replace(/\/$/,""), sp=$("#cVvSpeaker").value.trim()||"3";
+        st.textContent="テスト中… "+base;
+        try{
+          const safeBase=safeUrl(base, { allowLocal:true }).replace(/\/$/,"");
+          const qr=await safeFetch(`${safeBase}/audio_query?speaker=${encodeURIComponent(sp)}&text=${encodeURIComponent("てすと、聞こえますか?")}`,{method:"POST"}, { allowLocal:true });
+          if(!qr.ok) throw new Error("audio_query HTTP "+qr.status); const q=await qr.json();
+          const sr=guardResponseSize(await safeFetch(`${safeBase}/synthesis?speaker=${encodeURIComponent(sp)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(q)}, { allowLocal:true }));
+          if(!sr.ok) throw new Error("synthesis HTTP "+sr.status);
+          const buf=await sr.arrayBuffer();
+          const testUrl=URL.createObjectURL(new Blob([buf],{type:"audio/wav"}));
+          const testAudio=new Audio(testUrl);
+          testAudio.onended=testAudio.onerror=()=>URL.revokeObjectURL(testUrl);
+          testAudio.play().catch(()=>URL.revokeObjectURL(testUrl));
+          st.textContent="✅ 接続OK・再生しました ("+buf.byteLength+" bytes)。方式をVOICEVOXにすれば反映されます。";
+        }catch(e){ st.textContent="⚠ 失敗: "+e.message+" (起動/ポート/URLを確認)"; }
+        return;
+      }
+      const url=$("#cTtsUrl").value.trim()||CFG.ttsUrl;
+      st.textContent="テスト中… "+url;
+      try{
+        const res=guardResponseSize(await safeFetch(url, { method:"POST", headers:Object.assign({"Content-Type":"application/json"}, $("#cTtsKey").value?{"Authorization":"Bearer "+$("#cTtsKey").value}:{}),
+          body:JSON.stringify({ model:$("#cTtsModel").value||"irodori-tts-500m-v3-voicedesign", input:"てすと、聞こえますか?", voice:$("#cTtsVoice").value||"", instructions:(VOICE_PRESETS[CFG.voicePreset]||VOICE_PRESETS[0]).prompt, response_format:"mp3" }) }, { allowLocal:true }));
+        if(!res.ok){ const t=await res.text().catch(()=>"" ); st.textContent="⚠ HTTP "+res.status+" "+t.slice(0,140)+" (URL/モデル/方式を確認)"; return; }
+        const buf=await res.arrayBuffer();
+        const testUrl=URL.createObjectURL(new Blob([buf],{type:"audio/mpeg"}));
+        const a=new Audio(testUrl);
+        a.onended=a.onerror=()=>URL.revokeObjectURL(testUrl);
+        a.play().catch(()=>URL.revokeObjectURL(testUrl));
+        st.textContent="✅ 接続OK・再生しました ("+buf.byteLength+" bytes)。voiceモードもirodoriにすれば反映されます。";
+      }catch(e){ st.textContent="⚠ 失敗: "+e.message+" (起動/ポート/CORSを確認)"; }
+    };
+    /* VOICEVOX/AivisSpeech: 話者ドロップダウン＋自動接続 */
+    function vvFillSelects(){
+      const s1=$("#cVvSpeaker"), s2=$("#cVvSpeakerCalm"); if(!s1||!s2) return;
+      const list=vvSpeakerCache||[];
+      const opt=(val,lab,sel)=>`<option value="${escAttr(val)}" ${String(val)===String(sel)?'selected':''}>${esc(lab)}</option>`;
+      if(list.length){
+        s1.innerHTML=list.map(o=>opt(o.id,`${o.label} (${o.id})`,CFG.vvSpeaker)).join("");
+        s2.innerHTML=`<option value="">(可愛い声と同じ)</option>`+list.map(o=>opt(o.id,`${o.label} (${o.id})`,CFG.vvSpeakerCalm)).join("");
+      } else {
+        const cur=CFG.vvSpeaker||"888753760";
+        s1.innerHTML=opt(cur,cur+"(未接続・🔌で取得)",cur);
+        s2.innerHTML=`<option value="">(可愛い声と同じ)</option>`+(CFG.vvSpeakerCalm?opt(CFG.vvSpeakerCalm,CFG.vvSpeakerCalm,CFG.vvSpeakerCalm):"");
+      }
+    }
+    vvFillSelects();
+    if(vvSpeakerCache===null && CFG.vvAuto!==false){
+      const st=$("#cVvStat"); if(st) st.textContent="🔍 ローカルTTSを探索中…";
+      vvAutoConnect({switchMode:false}).then(r=>{ const st2=$("#cVvStat");
+        if(r){ if(st2) st2.textContent=`✅ ${vvServerName} に接続(話者${vvSpeakerCache.length}種)`; vvFillSelects(); const u=$("#cVvUrl"); if(u) u.value=CFG.vvUrl; }
+        else if(st2){ st2.textContent = vvConnIssue==="cors" ? `⚠ ${vvNameFor(vvReachUrl)}は起動中だがCORSで未接続 → AUTONOMA.batから開いてね` : "(TTS未検出・🔌 で再探索。AivisSpeech/VOICEVOX/COEIROINKを起動してね)"; }
+        vvBadge(); });
+    } else if(vvSpeakerCache){ const st=$("#cVvStat"); if(st) st.textContent=`✅ ${vvServerName||'TTS'} 接続済み(話者${vvSpeakerCache.length}種)`; }
+    $("#cVvAuto").onclick = async ()=>{
+      const st=$("#cVvStat"); st.textContent="🔍 探索中… (AivisSpeech/VOICEVOX/COEIROINK/SHAREVOX …)";
+      const r=await vvAutoConnect({force:true, switchMode:true});
+      if(r){ st.textContent=`✅ ${vvServerName} に接続(話者${vvSpeakerCache.length}種)。方式をVOICEVOXに切替えました。`; vvFillSelects(); const m=$("#cTtsMode"); if(m) m.value="voicevox"; const u=$("#cVvUrl"); if(u) u.value=CFG.vvUrl; vvNotified="ok"; vvAutoConnectLoop(); }
+      else st.textContent="⚠ "+(vvConnIssue==="cors" ? `${vvNameFor(vvReachUrl)}は起動中ですがCORSで読めません。AUTONOMA.batから開き直してね。` : "エンジンが見つかりません。AivisSpeech/VOICEVOX/COEIROINKを起動してから、もう一度押してね。");
+      vvBadge();
+    };
+    $("#cVvTest").onclick = ()=>{ if($("#cVvSpeaker").value) CFG.vvSpeaker=$("#cVvSpeaker").value; if($("#cVvUrl").value.trim()) CFG.vvUrl=$("#cVvUrl").value.trim(); voice.speak("こんにちは。わたし、AUTONOMA。この声どうかな?"); };
+    $("#cVvAutoChk").onchange = ()=>{ CFG.vvAuto=$("#cVvAutoChk").checked; saveCfg(); };
+    /* 可愛い声プリセット */
+    $("#cPreset").onchange = ()=>{ CFG.voicePreset=+$("#cPreset").value; saveCfg(); };
+    $("#cPresetPlay").onclick = ()=>{ CFG.voicePreset=+$("#cPreset").value; saveCfg(); voice.speak("こんにちは!わたし、AUTONOMA。この声どうかな?😊"); };
+    $("#cPresetToDesign").onclick = ()=>{ const p=VOICE_PRESETS[+$("#cPreset").value]; if(!p) return; $("#cVcPrompt").value=p.prompt; $("#cVcMode").value="design"; $("#cVcMode").onchange(); if(!$("#cVcId").value.trim()) $("#cVcId").value="cute_"+(+$("#cPreset").value+1); };
+    /* 声の登録 / VoiceDesign(irodoriの /v1/audio/voice_contents を叩く) */
+    $("#cVcMode").onchange = ()=>{ const d=$("#cVcMode").value==="design"; $("#cVcFileL").style.display=d?"none":""; $("#cVcFile").style.display=d?"none":""; $("#cVcPromptL").style.display=d?"":"none"; $("#cVcPrompt").style.display=d?"":"none"; };
+    $("#cVcReg").onclick = async ()=>{
+      const st=$("#cVcStat"), id=$("#cVcId").value.trim();
+      if(!id){ st.textContent="声IDを入れてね"; return; }
+      const url=($("#cVcRegUrl").value||"").trim() || (((CFG.ttsUrl||"").replace(/\/v1\/audio\/speech.*$/,"")||"http://localhost:8000")+"/v1/audio/voice_contents");
+      CFG.ttsRegUrl=url; saveCfg();
+      const fd=new FormData(); fd.append("voice_id", id);
+      if($("#cVcMode").value==="design"){ const pr=$("#cVcPrompt").value.trim(); if(!pr){ st.textContent="プロンプトを入れてね"; return; } fd.append("description", pr); fd.append("prompt", pr); }
+      else { const f=$("#cVcFile").files[0]; if(!f){ st.textContent="参照音声ファイルを選んでね"; return; } if(!SECURITY.allowedAudioMimes.has(String(f.type).toLowerCase())){ st.textContent="許可された音声形式(wav/mp3/webm/ogg)を選んでください。"; return; } if(f.size > SECURITY.maxAudioFileBytes){ st.textContent="音声ファイルが大きすぎます。16MB以下にしてください。"; return; } fd.append("file", f, safeFileName(f.name)); }
+      st.textContent="登録中… ("+url+")";
+      try{
+        const res=guardResponseSize(await safeFetch(url, { method:"POST", body:fd, headers: CFG.ttsKey?{"Authorization":"Bearer "+CFG.ttsKey}:{} }, { allowLocal:true }));
+        const txt=await res.text().catch(()=>"" );
+        if(!res.ok) throw new Error("HTTP "+res.status+" "+txt.slice(0,140));
+        const slot=$("#cVcSlot").value;
+        if(slot==="voice"||slot==="both"){ CFG.ttsVoice=id; const i=$("#cTtsVoice"); if(i) i.value=id; }
+        if(slot==="calm"||slot==="both"){ CFG.ttsVoiceCalm=id; const i=$("#cTtsVoiceCalm"); if(i) i.value=id; }
+        if(slot!=="none") saveCfg();
+        st.textContent="✅ 登録完了: "+id+(slot==="none"?"":" を"+(slot==="calm"?"低音":slot==="both"?"両方":"可愛い声")+"に設定");
+      }catch(e){ st.textContent="⚠ 失敗: "+e.message+" (URL/ポート/方式を確認)"; }
+    };
+  } else if (mode === "agent") {
+    renderAgentPanel(el);
+  } else if (mode === "aimode") {
+    renderAIModePanel(el);
+  } else if (mode === "writer") {
+    renderWriterPanel(el);
+  } else {
+    el.innerHTML = `<h3>長期記憶(覚えておくこと)</h3>
+      <p style="font-size:11px;color:#8590a8">ここに書いた内容は、毎回の会話で文脈に注入されます(名前・好み・前提など)。</p>
+      <textarea id="mText" rows="14">${esc(longMem||'')}</textarea>
+      <button id="mSave" style="margin-top:8px;width:100%">記憶を保存</button>
+      <p style="font-size:11px;color:#8590a8;margin-top:8px">会話履歴: ${history.length} 件 / 直近24件を毎回参照</p>
+      <h3>学習した方針(👍👎由来)</h3>
+      <textarea id="mLearn" rows="5">${esc(learned||'')}</textarea>
+      <button id="mLearnSave" style="margin-top:6px;width:100%">方針を保存</button>
+      <h3>自律取り込みの記憶(${worldMem.length}件)</h3>
+      <label>取り込み間隔(分・0=自動オフ)</label><input id="mIng" type="number" value="${CFG.ingestMin}">
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px"><input type="checkbox" id="mRag" ${CFG.rag!==false?'checked':''} style="width:auto"> 🧠 RAG記憶(埋め込みで関連だけ注入・賢く速く)</label>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="checkbox" id="mTools" ${CFG.tools!==false?'checked':''} style="width:auto"> 🛠 ツール使用(計算・日時・検索・技術)</label>
+      <p style="font-size:11px;color:#8590a8">取り込んだ文書(📎)は ${docs.length} 断片。RAGは長期記憶/取込/文書/稼働エージェント知識から関連箇所だけを自動で探して使います。</p>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="checkbox" id="mTech" ${CFG.techSources!==false?'checked':''} style="width:auto"> GitHub / HuggingFace / arXiv から<b>安全な技術</b>も自動取り込み</label>
+      <label>技術トピック(自動取り込みの検索語)</label><input id="mTechTopic" value="${(CFG.techTopic||'AI LLM machine learning').replace(/"/g,'&quot;')}" placeholder="例: AI LLM machine learning">
+      <p style="font-size:11px;color:#8590a8">高star・高DL数・モデレーション済みの信頼できる成果のみ採用し、攻撃・悪用系は除外します。各エージェントの「🔄 最新学習」でも同ソースから取り込みます。</p>
+      <button id="mIngNow" class="ghost" style="margin-top:6px;width:100%">📰 今すぐ取り込む</button>
+      <button id="mReflect" class="ghost" style="margin-top:6px;width:100%">🪞 今すぐ内省・整理(記憶/方針を要約)</button>
+      <div style="font-size:11px;color:#9fb0cc;margin-top:6px;max-height:160px;overflow:auto">${worldMem.slice(-6).reverse().map(w=>`<div style="margin:4px 0;border-top:1px solid #20283a;padding-top:4px">(${new Date(w.t).toLocaleString("ja-JP")})<br>${(w.text||"").replace(/</g,"&lt;").slice(0,300)}</div>`).join("")||"(まだ無し)"}</div>`;
+    $("#mSave").onclick = ()=>{ longMem = $("#mText").value; saveMem(); sys("長期記憶を更新しました。"); };
+    $("#mLearnSave").onclick = ()=>{ learned = $("#mLearn").value; saveLearned(); sys("学習方針を更新しました。"); };
+    $("#mIng").onchange = ()=>{ CFG.ingestMin = Math.max(0, parseInt($("#mIng").value)||0); saveCfg(); scheduleIngest(); };
+    $("#mRag").onchange = ()=>{ CFG.rag = $("#mRag").checked; saveCfg(); };
+    $("#mTools").onchange = ()=>{ CFG.tools = $("#mTools").checked; saveCfg(); };
+    $("#mTech").onchange = ()=>{ CFG.techSources = $("#mTech").checked; saveCfg(); };
+    $("#mTechTopic").onchange = ()=>{ CFG.techTopic = $("#mTechTopic").value.trim() || "AI LLM machine learning"; saveCfg(); };
+    $("#mIngNow").onclick = ()=>{ ingest(true); };
+    $("#mReflect").onclick = ()=>{ reflect(true); };
+  }
+}
+$("#ingBtn").onclick = ()=>ingest(true);
+$("#agentBtn").onclick = ()=>toggleSide("agent");
+$("#aiModeBtn").onclick = ()=>toggleSide("aimode");
+$("#writerBtn").onclick = ()=>toggleSide("writer");
+/* ---------- 🤖 文章AI判定(stop-slop) ---------- */
+function writerTone(r){
+  const v = r.metrics && r.metrics.verdict || "";
+  return v.includes("AI") ? "ai" : v.includes("人間") ? "human" : "mixed";
+}
+function writerScoreColor(v){
+  return v >= 58 ? "#ff8a8a" : v <= 35 ? "#78dfae" : "#ffd086";
+}
+function writerReport(text, r){
+  const survey = writerSurveySummary();
+  return `AUTONOMA 文章チェッカー判定レポート
+==============================
+AIっぽさ: ${r.ai}/100
+人間味: ${r.human}/100
+総合判定: ${r.metrics.verdict}
+信頼度: ${r.metrics.confidence}%
+不自然さ: ${r.metrics.unnatural}/100
+揺らぎ: ${r.metrics.fluctuation}/100
+癖補正: ${r.metrics.habitShift>0?"+":""}${r.metrics.habitShift || 0}
+フィードバック学習: ${survey.total}件 / 自動補正 ${survey.auto ? "ON" : "OFF"}
+
+本文情報:
+- 文字数: ${r.metrics.chars}
+- 文数: ${r.metrics.sentences}
+- 解析: ${r.metrics.engine}
+
+主なシグナル:
+${r.decomp.map(d=>`- ${d.label}: ${d.val}% (重み${Math.round(d.weight*100)}%)`).join("\n")}
+
+根拠:
+${r.evidence.map((e,i)=>`${i+1}. [${e.type}] ${e.label}: ${e.reason}`).join("\n")}
+
+文ごとスコア:
+${r.sentScores.map(s=>`${s.idx+1}. ${s.score}% - ${s.sent.slice(0,60)}`).join("\n")}
+
+注意:
+この判定は文章特徴に基づく支援ツールです。最終判断は執筆経緯、下書き、編集履歴と合わせて確認してください。
+
+対象本文:
+${text}`;
+}
+function renderWriterSurvey(r, text){
+  const guessed = r.ai >= 58 ? "ai" : r.ai <= 35 ? "human" : "mixed";
+  const feats = writerFeatureList(text);
+  const traitChoices = ["短文多め","長文多め","文長ばらつき","文長均一","一人称","緩衝表現","口語","具体場面","感情語","疑問文","受け身","形式文","接続詞多め","抽象語多め","カタカナ多め","語彙多様","語彙反復"];
+  return `<div class="writer-card" id="wSurveyCard">
+    <h3>判定フィードバック</h3>
+    <p class="writer-lead">結果が違う場合だけ正解を保存できます。次回の判定補正に使います。</p>
+    <div class="writer-actions" style="gap:8px">
+      <label><input type="radio" name="wTruth" value="human" ${guessed==="human"?"checked":""} style="width:auto"> 人間文</label>
+      <label><input type="radio" name="wTruth" value="ai" ${guessed==="ai"?"checked":""} style="width:auto"> AI文</label>
+      <label><input type="radio" name="wTruth" value="mixed" ${guessed==="mixed"?"checked":""} style="width:auto"> 混合</label>
+      <label><input type="radio" name="wTruth" value="hold" style="width:auto"> 保留</label>
+    </div>
+    <h3>癖タグ</h3>
+    <div class="writer-actions" style="gap:6px">
+      ${traitChoices.map(t=>`<label style="font-size:11px"><input type="checkbox" data-wtrait="${escAttr(t)}" ${feats.includes(t)?"checked":""} style="width:auto"> ${esc(t)}</label>`).join("")}
+    </div>
+    <textarea id="wSurveyMemo" rows="2" placeholder="例: 自分は接続詞が多い / 学校レポートはである調が普通 / AI添削後の文章"></textarea>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:6px"><input type="checkbox" id="wSurveyAuto" ${writerSurveyState.auto!==false?"checked":""} style="width:auto"> 学習した癖を次回から自動補正する</label>
+    <div class="writer-actions">
+      <button class="writer-mini primary" id="wSurveySave">保存して再判定</button>
+      <button class="writer-mini" id="wSurveyOnly">保存だけ</button>
+    </div>
+  </div>`;
+}
+function renderWriterResult(r, text, status=""){
+  const tone = writerTone(r);
+  const reasons = r.evidence.slice(0,8).map(ev=>`
+    <div class="writer-reason">
+      <i class="writer-dot ${ev.type}"></i>
+      <div><b>${esc(ev.label)}</b><br>${esc(ev.reason)}</div>
+    </div>`).join("");
+  const sent = r.sentScores.slice(0,10).map(s=>`
+    <div class="writer-sent">
+      <span>${s.idx+1}</span>
+      <div class="writer-bar"><i style="width:${s.score}%;background:${writerScoreColor(s.score)}"></i></div>
+      <b style="color:${writerScoreColor(s.score)}">${s.score}</b>
+    </div>`).join("");
+  const decomp = r.decomp.slice(0,8).map(d=>`
+    <div class="writer-metric">
+      <b style="color:${d.tone==='ai'?'#ff8a8a':d.tone==='tone'?'#ffd086':'#78dfae'}">${d.val}%</b>
+      <span>${esc(d.label)}</span>
+    </div>`).join("");
+  return `${status?`<div class="writer-card" style="border-color:#2b7a61;color:#c8ffe8">${esc(status)}</div>`:""}
+  <div class="writer-card">
+    <div class="writer-scorebox">
+      <div>
+        <div class="writer-score" style="color:${writerScoreColor(r.ai)}">${r.ai}</div>
+        <small>AIっぽさ /100</small>
+      </div>
+      <div>
+        <span class="writer-pill writer-${tone}">${esc(r.metrics.verdict)}</span>
+        <div class="writer-meter"><i style="width:${r.ai}%"></i></div>
+        <div style="font-size:11px;color:#8590a8;margin-top:6px">信頼度 ${r.metrics.confidence}% / 人間味 ${r.human}%</div>
+      </div>
+    </div>
+    <div class="writer-grid">
+      <div class="writer-metric"><b>${r.metrics.unnatural}</b><span>不自然さ</span></div>
+      <div class="writer-metric"><b>${r.metrics.fluctuation}</b><span>揺らぎ</span></div>
+      <div class="writer-metric"><b>${r.metrics.aiTerms}</b><span>AI語彙</span></div>
+      <div class="writer-metric"><b>${r.metrics.humanTerms}</b><span>人間味語</span></div>
+    </div>
+  </div>
+  <div class="writer-card">
+    <div class="writer-kv">
+      <span>文字/文</span><b>${r.metrics.chars}字 / ${r.metrics.sentences}文</b>
+      <span>形式語</span><b>受け身${r.metrics.passiveCount}・述語${r.metrics.formalCount}・接続${r.metrics.connectorCount}</b>
+      <span>メモ</span><b>${esc(r.notes.slice(0,6).join(" / ") || "目立つAI痕跡なし")}</b>
+    </div>
+  </div>
+  <div class="writer-card"><h3>根拠</h3>${reasons}</div>
+  <div class="writer-card"><h3>文ごとの疑わしさ</h3>${sent || '<p class="writer-lead">文を分けられませんでした。</p>'}</div>
+  <div class="writer-card"><h3>スコア分解</h3><div class="writer-grid">${decomp}</div></div>
+  <div class="writer-actions">
+    <button class="writer-mini primary" data-wlearn="ai">これはAI文として学習</button>
+    <button class="writer-mini" data-wlearn="human">これは人間文として学習</button>
+    <button class="writer-mini" id="wReportBtn">レポート表示</button>
+  </div>
+  <div id="wLearnMsg" class="writer-lead"></div>
+  <div id="wReportBox" style="display:none;margin-top:8px;white-space:pre-wrap;font-size:11px;line-height:1.55;color:#cdd6e6;background:#0b101a;border:1px solid #20283a;border-radius:6px;padding:8px;max-height:240px;overflow:auto"></div>
+  ${renderWriterSurvey(r, text)}`;
+}
+function wireWriterResultActions(text, r){
+  const rerender = (msg)=>{
+    const fresh = slopScan(text);
+    const out = $("#wChkOut");
+    if (out) {
+      out.innerHTML = renderWriterResult(fresh, text, msg);
+      wireWriterResultActions(text, fresh);
+    }
+  };
+  document.querySelectorAll("[data-wlearn]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const expected = btn.dataset.wlearn;
+      const res = writerLearnFrom(text, expected);
+      rerender(`${expected==="ai"?"AI文":"人間文"}として学習し、癖補正を即反映して再判定しました。追加語 ${res.added}件 / 癖タグ ${res.traits.length}件`);
+    };
+  });
+  const surveySave = $("#wSurveySave"), surveyOnly = $("#wSurveyOnly");
+  const saveSurvey = (rejudge)=>{
+    const picked = document.querySelector('input[name="wTruth"]:checked')?.value || "hold";
+    if (picked === "hold") { const msg=$("#wLearnMsg"); if(msg) msg.textContent="保留として扱いました。学習は行っていません。"; return; }
+    writerSurveyState.auto = $("#wSurveyAuto") ? $("#wSurveyAuto").checked : true;
+    const traits = [...document.querySelectorAll("[data-wtrait]:checked")].map(x=>x.dataset.wtrait);
+    const memo = $("#wSurveyMemo") ? $("#wSurveyMemo").value : "";
+    const res = writerLearnFrom(text, picked, { traits, memo, learnHabit:true });
+    const label = picked==="ai"?"AI文":picked==="human"?"人間文":"混合";
+    if (rejudge) rerender(`${label}としてフィードバック学習し、癖補正を即反映して再判定しました。追加語 ${res.added}件 / 癖タグ ${res.traits.length}件`);
+    else { const msg=$("#wLearnMsg"); if(msg) msg.textContent = `${label}として保存しました。次回判定から癖補正に反映します。`; }
+  };
+  if (surveySave) surveySave.onclick = ()=>saveSurvey(true);
+  if (surveyOnly) surveyOnly.onclick = ()=>saveSurvey(false);
+  const rep = $("#wReportBtn");
+  if (rep) rep.onclick = ()=>{
+    const box = $("#wReportBox");
+    if (!box) return;
+    box.style.display = box.style.display === "none" ? "" : "none";
+    box.textContent = writerReport(text, r);
+  };
+}
+function designBriefScan(brief){
+  const b = String(brief || "").trim();
+  const lower = b.toLowerCase();
+  const has = (...words)=>words.some(w=>lower.includes(String(w).toLowerCase()));
+  const add = (arr, ...items)=>items.forEach(x=>{ if (x && !arr.includes(x)) arr.push(x); });
+  const isTranslator = has("翻訳","通訳","字幕","音声","speech","voice","subtitle","translator","conversation","会話","マイク");
+  const isAiCheck = has("ai判定","判定","チェッカー","原稿","文章","ラボ","校正","添削","検出");
+  const isPortfolio = has("portfolio","ポートフォリオ","作品","creator","作家","クリエイター");
+  const isLanding = has("lp","landing","ランディング","ブランド","商品","サービス紹介","ポートフォリオ","プロフィール","portfolio") || isPortfolio;
+  const isTool = has("tool","dashboard","app","saas","crm","管理","業務","分析","履歴","設定","エディタ") || isTranslator || isAiCheck;
+  const isGame = has("game","ゲーム","canvas","three","3d","麻雀","将棋","チェス");
+  const isMobile = has("スマホ","スマートフォン","mobile","pwa","ブラウザ","background","バックグラウンド");
+  const isPrivacy = has("安全","セキュリティ","個人情報","顔","声","方言","speech pattern","プライバシー","録音","保存しない","privacy","security","secure","safe","recording","text-only","no audio","local only");
+  const isLight = has("軽量","cpu","gpu","低負荷","free","無料","ollamaなし","apiなし","ブラウザ");
+  const isPremium = has("高級","premium","ラグジュアリー","静か","落ち着","信頼","上質");
+  const isPublic = has("公共","医療","教育","自治体","行政","規制","アクセシビリティ");
+  let type = "プロダクト画面";
+  let audience = "実際に使うユーザー";
+  let system = "Material / Fluent 寄りの堅いUI基盤";
+  let variance = 5, motion = 3, density = 6;
+  let layout = "主操作、結果、根拠、履歴を同じ視線の流れに置く。装飾より、次に何をすればよいかを明確にする。";
+  const tactics = [];
+  const examples = [];
+  const states = [];
+  const visual = [];
+  const first = [];
+  const avoid = [];
+  const security = [];
+  if (isTranslator) {
+    type = "リアルタイム会話支援ツール";
+    audience = isMobile ? "スマートフォンで会話する人" : "対面で話しながら確認する人";
+    system = "字幕ファーストのPWA/会話UI";
+    variance = 4; motion = 3; density = 7;
+    layout = "画面中央に大きい二段字幕、上部に言語ペアと接続状態、下部にマイク・一時停止・テキスト保存を固定する。履歴は下から開くログに逃がす。";
+    add(tactics,
+      "字幕は自分/相手で色と位置を分け、1発話ごとに短いカードではなく会話の行として流す",
+      "言語切替は国旗より言語名を優先し、誤認識時の修正ボタンを字幕の近くに置く",
+      "保存は音声ではなくテキストログに限定し、保存中の表示を常時見える場所に出す"
+    );
+    add(examples,
+      "上部: 日本語 -> English / 聞き取り中 / ローカル保存のみ",
+      "字幕: 相手「駅はどこですか」→ Where is the station? / 自分「右です」→ It is on the right.",
+      "下部操作: マイク / 一時停止 / テキスト保存 / ログを開く"
+    );
+    add(states, "聞き取り中", "翻訳中", "相手の発話", "自分の返答", "バックグラウンド制限で一時停止", "テキスト保存済み");
+    add(first, "字幕表示領域を最初に作る", "マイク許可と停止状態を1つの大きなボタンにまとめる", "発話ログをテキストだけで保存する");
+    add(avoid,
+      "字幕より設定項目が目立つ画面にしない",
+      "音声保存を既定ONにしない",
+      "マイク権限や翻訳状態が分からないまま動かさない"
+    );
+  }
+  if (isAiCheck) {
+    type = isTranslator ? type + " + AI判定" : "AI判定チェッカー";
+    audience = "文章や発話ログを確認する人";
+    system = "原稿ラボ系の多軸分析UI";
+    variance = Math.min(variance, 4); motion = Math.min(motion, 2); density = Math.max(density, 8);
+    layout = isTranslator ? layout : "左に入力、中央に判定、右に根拠・文ごとのスコア・フィードバックを置く。スマホでは入力→判定→根拠の順に縦積みする。";
+    add(tactics,
+      "総合点だけで終わらせず、根拠・文ごとの疑わしさ・補正履歴を同じ画面に置く",
+      "誤判定フィードバックは結果カード直下に置き、初期状態では件数ゼロを見せない",
+      "AI/人間/混合は色だけでなく短いラベルと説明で出す"
+    );
+    add(examples,
+      "結果: AIっぽさ 68 / 混合寄り / 根拠「接続詞多め」「受け身多め」",
+      "文ごと: 3文目 82% / 理由「形式語が連続」/ 修正候補を右に表示",
+      "フィードバック: 人間文として保存 / 保留 / 次回から補正"
+    );
+    add(states, "未入力", "解析中", "AI寄り", "人間寄り", "混合", "フィードバック反映済み");
+    add(first, "判定結果カードの情報階層を整理する", "根拠リストを最大8件に絞る", "初期表示の空データを隠す");
+    add(avoid,
+      "点数だけを大きく見せて根拠を隠さない",
+      "未学習の件数ゼロや空の癖情報を初期表示しない",
+      "AI/人間の二択だけで曖昧な文章を断定しない"
+    );
+  }
+  if (isLanding && !isTool) {
+    type = "ランディングページ";
+    audience = "初見ユーザー";
+    system = "編集的なブランドUI";
+    variance = 7; motion = 4; density = 4;
+    layout = "ファーストビューで実物や画面を大きく見せ、次セクションの端が見える高さに抑える。説明カードより、実際に使う場面を先に見せる。";
+    add(tactics, "H1は名前か明確な提供価値にする", "背景は生成グラデではなく製品画面・実物・使用場面で作る", "CTAは1つを主役にし、補助リンクは小さく置く");
+    add(examples,
+      "H1: Extend World / その下に「ブラウザだけで会話を字幕化」など短い価値を置く",
+      "ファーストビュー: 実際の画面キャプチャを背景にし、下に利用シーンを少し見せる",
+      "CTA: 今すぐ試す / 仕組みを見る"
+    );
+    add(first, "実物画像または画面キャプチャを用意する", "ファーストビューの高さを短めにする", "次セクションに機能ではなく利用シーンを置く");
+    add(avoid, "機能説明だけの3列紹介で終わらせない", "最初の画面を大きすぎる宣伝文だけにしない", "実物や画面が見えない抽象背景だけにしない");
+  }
+  if (isPortfolio && !isTranslator && !isAiCheck) {
+    type = "ポートフォリオ";
+    audience = "採用者・読者・ファン";
+    system = "エディトリアル寄りの作品UI";
+    variance = Math.max(variance, 7); motion = Math.min(Math.max(motion, 4), 6); density = Math.min(density, 5);
+    layout = "作品そのものを主役にし、プロフィールより先に代表作・文脈・制作意図を見せる。スマホでは作品、説明、連絡先の順に縦へ流す。";
+    add(tactics, "作品画像や本文を小さなサムネだけで終わらせない", "作者情報は短く置き、実績と制作背景を作品の近くに添える", "一覧カードより、1作品ずつ読む余白と見出し階層を作る");
+    add(examples,
+      "代表作: 大きな作品画像 + 80字の制作意図 + 使用技術",
+      "作品詳細: Before / After / 制作期間 / 担当範囲を1画面で見せる",
+      "連絡導線: 作品の後にメール / GitHub / SNSを小さくまとめる"
+    );
+    add(first, "代表作を1つ大きく置く", "作品ごとの説明文を80字程度に圧縮する", "連絡先やSNSは主役にしすぎず下部にまとめる");
+    add(avoid, "作品より自己紹介が先に目立つ構成にしない", "全作品を同じ大きさで並べて強弱をなくさない", "説明文を長くして作品を見る流れを止めない");
+  }
+  if (isTool && !isTranslator && !isAiCheck && !isPortfolio) {
+    type = "業務/作業ツール";
+    audience = "繰り返し使う作業者";
+    system = "Fluent / Carbon 寄りの作業UI";
+    variance = 3; motion = 2; density = 8;
+    layout = "ツールバー、作業面、詳細パネルを固定し、比較・検索・再実行を最短距離に置く。";
+    add(tactics, "主要操作はツールバーにまとめる", "履歴は検索・削除・エクスポートを持つ", "結果と根拠を同じ視線内に並べる");
+    add(examples,
+      "ツールバー: 検索 / フィルタ / 再実行 / エクスポート",
+      "結果行: 名前 / 状態 / 最終更新 / 次の操作を横並びにする",
+      "履歴: 直近10件 + 検索欄 + 削除"
+    );
+    add(first, "ツールバーの優先順位を決める", "結果カードを固定寸法にする", "履歴の空状態を自然な文にする");
+    add(avoid, "毎日使う操作を深いメニューに隠さない", "状態表示を色だけに頼らない", "空の表や空の履歴を大きく見せない");
+  }
+  if (isGame) {
+    type = "ゲーム/インタラクティブ画面";
+    audience = "遊ぶ人";
+    system = "Canvas/Three.js中心の専用HUD";
+    variance = 8; motion = 8; density = 5;
+    layout = "プレイ面を最優先にし、スコア・状態・操作説明は固定寸法のHUDにまとめる。";
+    add(tactics, "入力フィードバックを即時に返す", "演出はゲーム状態に反応させる", "HUDはプレイ面を隠さない位置に固定する");
+    add(examples,
+      "HUD: 左上に SCORE 1200 / TIME 01:20、右上に一時停止",
+      "入力反応: 命中した瞬間だけ150msの発光、スコア+100を近くに表示",
+      "リザルト: SCORE / BEST / もう一度 / タイトルへ を同じ画面に置く"
+    );
+    add(states, "待機", "操作中", "成功", "失敗", "ポーズ", "リザルト");
+    add(first, "プレイ面とHUDの重なりを先に決める", "入力直後の反応を1つ入れる", "リザルトから再開までを1操作にする");
+    add(security,
+      "リセット・一時停止・再開の操作を分かりやすくする",
+      "強い点滅や揺れは設定で弱められるようにする",
+      "セーブやスコア保存がある場合は保存状態を短く表示する"
+    );
+    add(avoid,
+      "HUDがプレイ面を隠す配置にしない",
+      "演出が長くて操作を待たせる状態にしない",
+      "操作説明を文章で長く出し続けない",
+      "スコア・残機・時間などの重要情報を小さくしすぎない"
+    );
+  }
+  if (isPublic) {
+    system = "GOV.UK / USWDS 寄りの公共UI";
+    variance = Math.min(variance, 4); motion = Math.min(motion, 2); density = Math.max(density, 5);
+    add(tactics, "装飾より入力支援・エラー復帰・読みやすいラベルを優先する", "色だけに頼らずアイコンと文言で状態を伝える");
+    add(examples, "エラー: 郵便番号は7桁で入力してください / 入力欄の直下に表示", "状態: 送信前 / 送信中 / 受付済みを文言で明示");
+  }
+  if (isMobile) {
+    audience = audience === "実際に使うユーザー" ? "スマートフォン利用者" : audience;
+    add(tactics, "主要ボタンは親指が届く下部に固定し、44px以上のタップ領域を確保する", "設定は常時表示せず、必要時だけボトムシートで開く");
+    add(examples, "下部固定: 開始 / 停止 / 保存 の3操作だけ常時表示", "設定: 言語・音量・保存先は下から開くパネルに分離");
+    add(states, "権限待ち", "画面復帰", "通信低下", "省電力モード");
+    add(first, "スマホ幅で字幕/結果が折り返しても操作を押し下げない寸法にする");
+  }
+  if (isPrivacy) {
+    add(security,
+      "音声・顔・方言・発話癖は既定で外部送信しない",
+      "保存対象をテキストに限定し、削除ボタンと保存先を明示する",
+      "マイク権限、翻訳API利用、ローカル保存の状態を別々に表示する"
+    );
+    add(tactics, "プライバシー状態を小さな常時表示チップにする");
+    add(examples, "チップ: ローカル処理 / テキスト保存のみ / 外部送信なし", "削除: この会話ログを削除 を履歴の先頭に置く");
+  }
+  if (isLight) {
+    add(tactics,
+      "重い常時アニメーションを避け、処理中だけ短い状態変化を出す",
+      "GPU前提の表現は使わず、CSSと通常DOMで成立する画面にする",
+      "無料API/ブラウザ内蔵/ローカルモデルのどれを使っているかを状態表示する"
+    );
+    add(examples, "処理中: 小さな点滅アイコンだけにして背景アニメは止める", "状態: Browser Speech / Free API / Local only をヘッダーに表示");
+    add(security, "外部APIに送る前に、送信内容の確認とローカルのみモードを選べるようにする");
+  }
+  if (isPremium) {
+    variance = Math.max(variance, 6); motion = Math.min(motion + 1, 6); density = Math.min(density, 6);
+    add(visual,
+      "背景は単色寄りの深いニュートラル、アクセントは1色だけにする",
+      "余白、線の細さ、数字の揃いで上質さを出す",
+      "角丸を増やしすぎず、パネルの境界は薄くする"
+    );
+  } else {
+    add(visual,
+      "色は役割で決める。成功/警告/危険/情報を混ぜない",
+      "見出しは小さく、画面の主情報だけを大きくする",
+      "装飾は機能の状態に紐づくものだけ残す"
+    );
+  }
+  const explicitAvoid = (b.match(/(?:避けたい|避ける|禁止|NG|なしで|使わない)[：:\s、。]*([^\n。]{2,80})/) || [])[1];
+  if (explicitAvoid) add(avoid, `ブリーフ指定: ${explicitAvoid.trim()}`);
+  if (!avoid.length) add(avoid, "主操作と関係のない装飾を増やさない", "状態や次の操作が分からない画面にしない", "説明文だけで体験を伝えようとしない");
+  const vibe = isPremium ? "静かで信頼感のある" : isGame ? "反応が速い" : isTranslator ? "会話を止めない" : isAiCheck ? "根拠が見える" : isLanding ? "実物が伝わる" : "作業に集中できる";
+  if (!first.length) add(first, "主操作を1つ決めて画面上部に固定する", "結果と次の操作を隣接させる", "空状態を自然な案内文にする");
+  if (!examples.length) add(examples, "上部に主操作、中央に結果、下部に履歴を置く", "空状態: ここに結果が表示されます ではなく、最初の操作を短く示す", "保存済みなどの状態はボタン近くに1行で表示する");
+  if (!states.length) add(states, "未入力", "処理中", "成功", "失敗", "保存済み");
+  if (!security.length) add(security, "保存・削除・外部送信がある場合は、状態と操作を分けて表示する");
+  const read = `これは「${type}」×「${audience}」向け。${vibe}言語で、${system}を土台に、VARIANCE ${variance}/10・MOTION ${motion}/10・DENSITY ${density}/10で組む。`;
+  return { brief:b, type, audience, system, variance, motion, density, layout, tactics, examples, states, visual, first, avoid, security, read };
+}
+function designProposalLocal(brief){
+  const s = designBriefScan(brief);
+  const tacticLines = s.tactics.map(x=>`- ${x}`).join("\n");
+  return `1. Design Read
+${s.read}
+
+2. 三つのダイヤル
+- VARIANCE ${s.variance}/10: ${s.variance >= 7 ? "見た目の個性を出す。ただし主操作の位置は固定する。" : s.variance <= 4 ? "画面構造は落ち着かせ、判断しやすさを優先する。" : "標準UIを土台に、主情報だけ差をつける。"}
+- MOTION ${s.motion}/10: ${s.motion >= 7 ? "状態や入力に反応する演出を使う。" : s.motion <= 3 ? "常時アニメーションは避け、処理中だけ短く動かす。" : "画面遷移と重要状態だけ控えめに動かす。"}
+- DENSITY ${s.density}/10: ${s.density >= 7 ? "情報量は多め。折りたたまず、比較・根拠・履歴を近くに置く。" : s.density <= 4 ? "余白を多めにして、主対象を大きく見せる。" : "主情報を大きく、補助情報を一段小さく置く。"}
+
+3. 主要画面の構成
+${s.layout}
+
+4. 具体策（例つき）
+${tacticLines}
+
+具体例:
+${s.examples.slice(0,6).map(x=>`- ${x}`).join("\n")}
+
+5. 状態表示
+${s.states.map(x=>`- ${x}`).join("\n")}
+
+6. 見た目
+${s.visual.map(x=>`- ${x}`).join("\n")}
+
+7. 信頼・扱いやすさ
+${s.security.map(x=>`- ${x}`).join("\n")}
+
+8. すぐ実装する最初の3変更
+${s.first.slice(0,3).map((x,i)=>`${i+1}. ${x}`).join("\n")}
+
+9. 注意点
+${s.avoid.map(x=>`- ${x}`).join("\n")}`;
+}
+function renderDesignScan(scan){
+  return `<div class="writer-card">
+    <div class="writer-design-read">${esc(scan.read)}</div>
+    <div class="writer-grid">
+      <div class="writer-metric"><b>${scan.variance}</b><span>VARIANCE</span></div>
+      <div class="writer-metric"><b>${scan.motion}</b><span>MOTION</span></div>
+      <div class="writer-metric"><b>${scan.density}</b><span>DENSITY</span></div>
+      <div class="writer-metric"><b>${esc(scan.type)}</b><span>種別</span></div>
+    </div>
+  </div>
+  <div class="writer-card">
+    <div class="writer-kv">
+      <span>基盤</span><b>${esc(scan.system)}</b>
+      <span>対象</span><b>${esc(scan.audience)}</b>
+      <span>構成</span><b>${esc(scan.layout)}</b>
+    </div>
+  </div>
+  <div class="writer-card">
+    <h3>具体策</h3>
+    ${scan.tactics.slice(0,8).map(x=>`<div class="writer-reason"><i class="writer-dot human"></i><div>${esc(x)}</div></div>`).join("")}
+    <h3>具体例</h3>
+    ${scan.examples.slice(0,6).map(x=>`<div class="writer-reason"><i class="writer-dot human"></i><div>${esc(x)}</div></div>`).join("")}
+    <h3>注意点</h3>
+    ${scan.avoid.slice(0,8).map(x=>`<div class="writer-reason"><i class="writer-dot tone"></i><div>${esc(x)}</div></div>`).join("")}
+  </div>`;
+}
+TOOLS.design = { desc:"ブリーフからUI/デザイン方針をローカル診断。入力は作りたい画面の説明", run:(x)=>designProposalLocal(x) };
+const AI_MODE_PRESETS = {
+  writing: {
+    label:"文章改善",
+    goal:"読者に伝わり、AIっぽさが少ない自然な文章に仕上げる",
+    role:"編集者・文章チェッカー・厳格なリライト担当",
+    audience:"指定された読者。指定がなければ一般読者",
+    material:"原稿、目的、読者、媒体、避けたい表現、過去の修正例",
+    avoid:"意味の改変、事実の創作、過剰な敬語、AIっぽい前置き、抽象的な褒め言葉",
+    output:"1. 問題点\n2. AIっぽい箇所\n3. 修正方針\n4. 完成版\n5. 再判定メモ"
+  },
+  sales: {
+    label:"営業文",
+    goal:"読者に信用され、押し売りに見えない営業文にする",
+    role:"営業編集者・顧客心理の分析者・リスク指摘者",
+    audience:"購入や問い合わせを迷っている読者",
+    material:"商品/サービス内容、強み、証拠、対象顧客、価格、よくある不安",
+    avoid:"誇大表現、根拠のない実績、煽り、誰にでも刺さる風の曖昧な言葉",
+    output:"1. 読者の不安\n2. 信用を増やす材料\n3. 弱い表現\n4. 改善案\n5. そのまま使える営業文"
+  },
+  judge: {
+    label:"厳格採点",
+    goal:"成果物を甘く見ず、欠点と改善優先度を明確にする",
+    role:"厳格な採点者・批判者・品質保証担当",
+    audience:"改善作業をする本人",
+    material:"評価対象、目的、合格基準、制約、比較対象",
+    avoid:"遠慮した評価、根拠のない高得点、抽象的な指摘だけで終わること",
+    output:"1. 100点採点\n2. 減点理由\n3. 致命的な問題\n4. 改善優先度\n5. 修正版"
+  },
+  design: {
+    label:"デザイン",
+    goal:"用途と読者に合った、テンプレ感のないUI/デザイン方針を作る",
+    role:"プロダクトデザイナー・UI監査者・実装相談役",
+    audience:"その画面を実際に使うユーザー",
+    material:"画面種別、ターゲット、参考、ブランド、制約、主要ワークフロー",
+    avoid:"用途と関係のない装飾、操作を邪魔する演出、長すぎる説明、状態が分からない画面、同じ部品を並べるだけの構成",
+    output:"1. Design Read\n2. VARIANCE/MOTION/DENSITY\n3. レイアウト方針\n4. 配色/タイポ/状態表示\n5. 実装する最初の3変更"
+  },
+  code: {
+    label:"実装",
+    goal:"既存コードに合う、壊れにくく検証可能な実装を作る",
+    role:"シニア実装者・コードレビュアー・テスト担当",
+    audience:"このコードを保守する開発者",
+    material:"既存コード、エラー、再現手順、期待動作、制約",
+    avoid:"無関係なリファクタ、大きすぎる抽象化、未検証の変更、既存挙動の破壊",
+    output:"1. 原因\n2. 実装方針\n3. 変更内容\n4. 検証方法\n5. 残るリスク"
+  }
+};
+function applyAIModePreset(key){
+  const p = AI_MODE_PRESETS[key]; if(!p) return;
+  CFG.aiModeGoal = p.goal;
+  CFG.aiModeRole = p.role;
+  CFG.aiModeAudience = p.audience;
+  CFG.aiModeMaterial = p.material;
+  CFG.aiModeAvoid = p.avoid;
+  CFG.aiModeOutput = p.output;
+}
+function syncAIModePanel(save){
+  const g=$("#aiGoal"), r=$("#aiRole"), a=$("#aiAudience"), m=$("#aiMaterial"), av=$("#aiAvoid"), o=$("#aiOutput");
+  if(g) CFG.aiModeGoal = g.value.trim();
+  if(r) CFG.aiModeRole = r.value.trim();
+  if(a) CFG.aiModeAudience = a.value.trim();
+  if(m) CFG.aiModeMaterial = m.value.trim();
+  if(av) CFG.aiModeAvoid = av.value.trim();
+  if(o) CFG.aiModeOutput = o.value.trim();
+  const loop=$("#aiLoop"), self=$("#aiSelfCheck");
+  if(loop) CFG.aiModeLoop = loop.checked;
+  if(self) CFG.aiModeSelfCheck = self.checked;
+  if(save) saveCfg();
+  updateAIModeBtn();
+  const prev=$("#aiPromptPreview");
+  if(prev) prev.textContent = buildAIModePrompt("ここに今回の依頼が入ります。");
+}
+function renderAIModePanel(el){
+  const c = aiModeConfig();
+  el.innerHTML = `<div class="writer-panel">
+    <h3>🚀 AI活用モード</h3>
+    <p class="writer-lead">目的・役割・材料・出力形式・検証ループを固定します。ONの間は、通常の会話にもこの枠組みが自動で入ります。</p>
+    <div class="writer-card">
+      <div class="writer-scorebox">
+        <div><div class="writer-score" style="color:${CFG.aiMode?'#6fe0b0':'#8590a8'}">${CFG.aiMode?'ON':'OFF'}</div><small>専用モード</small></div>
+        <div>
+          <span class="writer-pill ${CFG.aiMode?'writer-human':'writer-mixed'}">${CFG.aiMode?'通常会話に適用中':'会話には未適用'}</span>
+          <div class="writer-actions">
+            <button id="aiToggle" class="writer-mini primary">${CFG.aiMode?'OFFにする':'ONにする'}</button>
+            <button id="aiSave" class="writer-mini">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h3>プリセット</h3>
+    <div class="writer-actions">
+      ${Object.entries(AI_MODE_PRESETS).map(([k,p])=>`<button class="writer-mini" data-aipreset="${k}">${esc(p.label)}</button>`).join("")}
+    </div>
+    <h3>目的</h3>
+    <textarea id="aiGoal" rows="2" placeholder="例: 読者に信用される営業文にする">${esc(c.goal)}</textarea>
+    <h3>AIの役割</h3>
+    <textarea id="aiRole" rows="2" placeholder="例: 編集者・厳格な採点者・批判者">${esc(c.role)}</textarea>
+    <h3>読者・利用者</h3>
+    <textarea id="aiAudience" rows="2" placeholder="例: 初めて商品を知る読者 / 保守担当者">${esc(c.audience)}</textarea>
+    <h3>材料・前提</h3>
+    <textarea id="aiMaterial" rows="4" placeholder="原稿、商品情報、制約、好み、過去の修正例など">${esc(c.material)}</textarea>
+    <h3>禁止・注意</h3>
+    <textarea id="aiAvoid" rows="3" placeholder="避けたい表現、嘘、過剰演出、禁止事項など">${esc(c.avoid)}</textarea>
+    <h3>出力形式</h3>
+    <textarea id="aiOutput" rows="4" placeholder="箇条書き / 100点採点 / 問題点・理由・修正案 / JSONなど">${esc(c.output)}</textarea>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:8px"><input type="checkbox" id="aiLoop" ${c.loop?'checked':''} style="width:auto"> 生成 → 批判 → 修正 → 再判定 → 仕上げを内部で回す</label>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="checkbox" id="aiSelfCheck" ${c.selfCheck?'checked':''} style="width:auto"> 弱点・AIっぽさ・誤解リスクを自己点検する</label>
+    <div class="writer-actions">
+      <button id="aiPreviewBtn" class="writer-mini">プレビュー更新</button>
+      <button id="aiToInput" class="writer-mini primary">入力欄へ指示を作成</button>
+      <button id="aiAskNow" class="writer-mini">今の入力欄で送信</button>
+    </div>
+    <h3>生成される指示</h3>
+    <div id="aiPromptPreview" class="ai-mode-preview"></div>
+  </div>`;
+  $("#aiToggle").onclick = ()=>{ syncAIModePanel(false); CFG.aiMode = !CFG.aiMode; saveCfg(); renderAIModePanel(el); };
+  $("#aiSave").onclick = ()=>{ syncAIModePanel(true); sys(`🚀 AI活用モード設定を保存しました（${CFG.aiMode?'ON':'OFF'}）`); };
+  $("#aiPreviewBtn").onclick = ()=>syncAIModePanel(false);
+  $("#aiToInput").onclick = ()=>{ syncAIModePanel(true); const current=$("#say").value.trim(); $("#say").value = buildAIModePrompt(current || "ここに依頼を書く"); $("#say").focus(); };
+  $("#aiAskNow").onclick = ()=>{ syncAIModePanel(true); if(!CFG.aiMode){ CFG.aiMode=true; saveCfg(); updateAIModeBtn(); } if(!$("#say").value.trim()) $("#say").value = "この設定で、まず進め方を整理して。"; send(); };
+  el.querySelectorAll("[data-aipreset]").forEach(btn=>{
+    btn.onclick = ()=>{ applyAIModePreset(btn.dataset.aipreset); saveCfg(); renderAIModePanel(el); };
+  });
+  ["aiGoal","aiRole","aiAudience","aiMaterial","aiAvoid","aiOutput","aiLoop","aiSelfCheck"].forEach(id=>{
+    const node=$("#"+id); if(node) node.oninput = ()=>syncAIModePanel(false);
+  });
+  syncAIModePanel(false);
+}
+function renderWriterPanel(el){
+  const hasWriterLearning = writerLearnedAiCorpus.length || writerLearnedHumanCorpus.length || writerFeedbackLogs.length;
+  el.innerHTML = `<div class="writer-panel">
+    <h3>🤖 AI判定チェッカー</h3>
+    ${hasWriterLearning ? `<div class="writer-card">
+      <div class="writer-kv">
+        <span>学習済み</span><b>AI ${writerLearnedAiCorpus.length}語 / 人間 ${writerLearnedHumanCorpus.length}語</b>
+        <span>誤判定ログ</span><b>${writerFeedbackLogs.length}件</b>
+      </div>
+      <div class="writer-actions"><button class="writer-mini" id="wResetLearn">学習リセット</button></div>
+    </div>` : ""}
+
+    <h3>判定テキスト</h3>
+    <textarea id="wChk" rows="7" placeholder="判定したい文章を貼り付け"></textarea>
+    <button id="wChkBtn" style="width:100%;margin-top:4px">多軸で判定</button>
+    <div id="wChkOut" style="font-size:12px;color:#cdd6e6;margin-top:8px"></div>
+
+    <h3>🎨 デザイン提案</h3>
+    <p class="writer-lead">ブリーフから種別、対象、密度、モーション、用途別の注意点をローカルで診断します。</p>
+    <textarea id="wDesignBrief" rows="5" placeholder="例: リアルタイム音声翻訳アプリ。スマホ対応。字幕を大きく、テキストだけ保存。軽量で高級感。"></textarea>
+    <button id="wDesignBtn" style="width:100%;margin-top:4px">提案を作成</button>
+    <div id="wDesignOut" style="font-size:12px;color:#cdd6e6;margin-top:8px;line-height:1.6"></div>
+  </div>`;
+  if ($("#wResetLearn")) $("#wResetLearn").onclick = ()=>{
+    writerLearnedAiCorpus = []; writerLearnedHumanCorpus = []; writerFeedbackLogs = [];
+    writerSurveyState = { auto:true, samples:[], humanTraits:{}, aiTraits:{}, mixedTraits:{}, memo:"" };
+    writerSaveLearning();
+    renderWriterPanel(el);
+  };
+  $("#wChkBtn").onclick = ()=>{
+    const v = $("#wChk").value.trim(), o = $("#wChkOut");
+    if(!v){ o.textContent = "文章を入れてね"; return; }
+    const r = slopScan(v);
+    o.innerHTML = renderWriterResult(r, v);
+    wireWriterResultActions(v, r);
+  };
+  $("#wDesignBtn").onclick = ()=>{
+    const v = $("#wDesignBrief").value.trim(), o = $("#wDesignOut");
+    if(!v){ o.textContent = "作りたい画面の内容を入れてください。"; return; }
+    const scan = designBriefScan(v);
+    o.innerHTML = renderDesignScan(scan) + `<div class="writer-card"><h3>詳細案</h3><div style="white-space:pre-wrap;line-height:1.7">${esc(designProposalLocal(v))}</div></div>`;
+  };
+}
+$("#cfgBtn").onclick = ()=>toggleSide("cfg");
+$("#memBtn").onclick = ()=>toggleSide("mem");
+function updateProvLabel(){ const p=PROVIDERS[CFG.prov]; $("#provLabel").textContent = `脳: ${CFG.apiKey?(CFG.model||p.model):"未設定"}`; }
+function updateAgentChip(){ const ag=activeAgent(); const c=$("#agentChip"); if(!c) return; if(ag){ c.textContent="🧪 "+ag.name; c.style.display=""; } else c.style.display="none"; }
+function updateAIModeBtn(){ const b=$("#aiModeBtn"); if(!b) return; b.textContent = `🚀 AI活用: ${CFG.aiMode?"ON":"OFF"}`; b.classList.toggle("activeMode", !!CFG.aiMode); }
+
+/* ---------- 蒸留エージェント・パネル ---------- */
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function renderAgentPanel(el){
+  const act = activeAgent();
+  el.innerHTML = `<h3>🧪 エージェント蒸留</h3>
+    <p style="font-size:11px;color:#8590a8">最新モデル(教師)に専門家の「脳」を設計させて凝縮(蒸留)し、<b>無料・高速・高精度</b>な専門AIとして稼働させます。学習(GPU)不要。蒸留時にWebで<b>最新情報も自律学習</b>(🌐取り込みON時)。専門分野を一言で書いて蒸留してください。</p>
+    <textarea id="agDesc" rows="3" placeholder="例: Pythonデバッグ専門 / 栄養と献立の専門家 / 英日テクニカル翻訳 / 正規表現の達人"></textarea>
+    <button id="agDistill" style="margin-top:6px;width:100%">🧪 この専門家を蒸留する</button>
+    <p id="agStat" style="font-size:11px;color:#8590a8;min-height:14px"></p>
+    <div style="display:flex;gap:6px;margin:2px 0 4px">
+      <button id="agExport" class="ghost" style="flex:1;padding:3px 6px" title="全エージェント(技術)をファイルに書き出して引き継ぎ・バックアップ">⬇ 書き出し</button>
+      <button id="agImportBtn" class="ghost" style="flex:1;padding:3px 6px" title="書き出したファイルから読み込んで引き継ぐ(既存は消えません)">⬆ 読み込み</button>
+      <input id="agImport" type="file" accept="application/json,.json" style="display:none">
+    </div>
+    <div style="border-top:1px solid #20283a;margin:8px 0 6px"></div>
+    <div style="font-size:12px;color:#9fb0cc;margin-bottom:6px">稼働中: ${act?`<b style="color:#7fd1ff">${esc(act.name)}</b>（解除すると通常のAUTONOMAに戻ります）`:'<span style="color:#8590a8">なし(通常のAUTONOMA)</span>'} ${act?'<button id="agOff" class="ghost" style="padding:2px 8px;margin-left:6px">解除</button>':''}</div>
+    <div id="agList"></div>`;
+  const listEl = $("#agList");
+  function drawList(){
+    if (!agents.length){ listEl.innerHTML = `<p style="font-size:11px;color:#8590a8">まだ蒸留したエージェントはありません。</p>`; return; }
+    listEl.innerHTML = agents.slice().reverse().map(a=>{
+      const on = a.id===activeAgentId;
+      return `<div class="agItem" data-id="${escAttr(a.id)}" style="border:1px solid ${on?'#2f6db0':'#20283a'};background:${on?'#13233a':'#11151f'};border-radius:10px;padding:8px 10px;margin:6px 0">
+        <div style="display:flex;align-items:center;gap:6px"><b style="color:${on?'#7fd1ff':'#dfe6f2'}">${esc(a.name)}</b>${a.precise?'<span style="font-size:10px;color:#8fe6b0">●精度</span>':''}${on?'<span style="font-size:10px;color:#7fd1ff;margin-left:auto">稼働中</span>':''}</div>
+        <div style="font-size:11px;color:#9fb0cc;margin:3px 0">${esc(a.specialty)}</div>
+        <div style="font-size:10px;margin:2px 0">最新情報: ${a.freshAt?`<span style="color:#8fe6b0">${new Date(a.freshAt).toLocaleDateString("ja-JP")} 取込済</span>`:'<span style="color:#ffb86b">未取込</span>'}</div>
+        <div style="display:flex;gap:6px;margin-top:5px">
+          <button class="ghost agUse" data-id="${escAttr(a.id)}" style="flex:1;padding:3px 6px">${on?'使用中':'使う'}</button>
+          <button class="ghost agLearn" data-id="${escAttr(a.id)}" style="padding:3px 8px" title="Webで最新情報を学習して知識を更新">🔄 最新学習</button>
+          <button class="ghost agClone" data-id="${escAttr(a.id)}" style="padding:3px 8px" title="この技術を継承した新エージェントを作る(複製)">🧬 継承</button>
+          <button class="ghost agEval" data-id="${escAttr(a.id)}" style="padding:3px 8px" title="試験で採点し、弱点を自己改善する">🎯 自己評価</button>
+          <button class="ghost agInfo" data-id="${escAttr(a.id)}" style="padding:3px 8px">詳細</button>
+          <button class="ghost agDel" data-id="${escAttr(a.id)}" style="padding:3px 8px">🗑</button>
+        </div>
+        <div class="agDetail" data-id="${escAttr(a.id)}" style="display:none;font-size:11px;color:#aab6c8;margin-top:6px;border-top:1px solid #20283a;padding-top:6px">
+          <div><b>専門知識</b><br>${esc(a.knowledge).replace(/\n/g,"<br>")||"(なし)"}</div>
+          <div style="margin-top:4px"><b>厳守ルール</b><br>${(a.rules||[]).map(r=>"・"+esc(r)).join("<br>")||"(なし)"}</div>
+          <div style="margin-top:4px"><b>模範例</b><br>${(a.examples||[]).map(e=>`Q: ${esc(e.q)}<br>A: ${esc(e.a)}`).join("<br><br>")||"(なし)"}</div>
+        </div>
+      </div>`;
+    }).join("");
+    listEl.querySelectorAll(".agUse").forEach(b=> b.onclick=()=>{
+      setActiveAgent(b.dataset.id); const a=activeAgent(); sys(`🧪 蒸留エージェント「${a.name}」を稼働。専門特化モードで応答します。`); renderAgentPanel(el);
+      if (!a.freshAt && CFG.web && CFG.apiKey) { sys(`🔄 「${a.name}」の最新情報を自律学習中…`); learnAgentLatest(a).then(r=>{ sys(r.updated?`✅ 「${a.name}」に最新情報を取り込みました。`:`(「${a.name}」: 新しい確かな情報は見つかりませんでした)`); if(sideMode==="agent") renderAgentPanel(el); }).catch(()=>{}); }   // 未取込なら自律学習
+    });
+    listEl.querySelectorAll(".agLearn").forEach(b=> b.onclick=async()=>{
+      const a=agents.find(x=>x.id===b.dataset.id); if(!a) return; const st=$("#agStat");
+      if(!CFG.web){ st.innerHTML='<span style="color:#ffb86b">⚠ 🌐取り込みをONにしてください</span>'; return; }
+      if(!CFG.apiKey){ st.innerHTML='<span style="color:#ffb86b">⚠ 脳(APIキー)が未設定です</span>'; return; }
+      if(busy){ st.textContent="処理中です。少し待ってね。"; return; }
+      b.disabled=true; st.innerHTML=`🔄 「${esc(a.name)}」の最新情報をWebから学習中…`;
+      try{ const r=await learnAgentLatest(a); st.innerHTML=r.updated?`✅ 「${esc(a.name)}」に最新情報を取り込みました。`:`(新しい確かな情報は見つかりませんでした)`; }
+      catch(e){ st.innerHTML='<span style="color:#ff8a8a">⚠ 学習失敗: '+esc(e.message)+'</span>'; }
+      finally{ b.disabled=false; renderAgentPanel(el); }
+    });
+    listEl.querySelectorAll(".agClone").forEach(b=> b.onclick=()=>{ const c=cloneAgent(b.dataset.id); if(c){ sys(`🧬 「${c.name}」を継承(複製)しました。再蒸留や最新学習の土台にできます。`); renderAgentPanel(el); } });
+    listEl.querySelectorAll(".agEval").forEach(b=> b.onclick=async()=>{
+      const a=agents.find(x=>x.id===b.dataset.id); if(!a) return; const st=$("#agStat");
+      if(!CFG.apiKey){ st.innerHTML='<span style="color:#ffb86b">⚠ 脳(APIキー)が未設定です</span>'; return; }
+      if(busy){ st.textContent="処理中です。少し待ってね。"; return; }
+      b.disabled=true; st.innerHTML=`🎯 「${esc(a.name)}」を試験で自己評価中…`;
+      try { const r=await evalAgent(a);
+        if(r.score>=80 || !r.weaknesses.length){ st.innerHTML=`✅ スコア ${r.score}/100。十分な品質です。`; }
+        else { st.innerHTML=`📝 スコア ${r.score}/100 → 弱点を自己改善中…`; await refineAgent(a, r.weaknesses); st.innerHTML=`✅ スコア ${r.score}/100 を踏まえ「${esc(a.name)}」を自己改善しました(再評価で確認できます)。`; }
+        renderAgentPanel(el);
+      } catch(e){ st.innerHTML='<span style="color:#ff8a8a">⚠ 評価失敗: '+esc(e.message)+'</span>'; }
+      finally { b.disabled=false; }
+    });
+    listEl.querySelectorAll(".agInfo").forEach(b=> b.onclick=()=>{ const d=listEl.querySelector(`.agDetail[data-id="${b.dataset.id}"]`); d.style.display = d.style.display==="none"?"":"none"; });
+    listEl.querySelectorAll(".agDel").forEach(b=> b.onclick=()=>{ if(!confirm("このエージェントを削除しますか?")) return; const id=b.dataset.id; agents=agents.filter(a=>a.id!==id); saveAgents(); if(activeAgentId===id) setActiveAgent(""); renderAgentPanel(el); });
+  }
+  drawList();
+  if ($("#agOff")) $("#agOff").onclick = ()=>{ setActiveAgent(""); sys("蒸留エージェントを解除しました。通常のAUTONOMAに戻ります。"); renderAgentPanel(el); };
+  // 引き継ぎ: 書き出し / 読み込み
+  if ($("#agExport")) $("#agExport").onclick = ()=>{ if(!agents.length){ $("#agStat").textContent="書き出すエージェントがありません。"; return; } downloadText("autonoma-agents.json", exportAgents()); $("#agStat").innerHTML=`⬇ ${agents.length}体を書き出しました(autonoma-agents.json)。別のPC/ブラウザで「読み込み」すれば引き継げます。`; };
+  if ($("#agImportBtn")) $("#agImportBtn").onclick = ()=> $("#agImport").click();
+  if ($("#agImport")) $("#agImport").onchange = (e)=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    if (ext !== "json" || f.size > SECURITY.maxTextFileBytes) { $("#agStat").innerHTML = '<span style="color:#ff8a8a">⚠ 1MB以下のJSONファイルだけ読み込めます</span>'; e.target.value=""; return; }
+    const rd = new FileReader();
+    rd.onload = ()=>{ try { const r = importAgentsFromText(String(rd.result)); $("#agStat").innerHTML = `⬆ ${r.added}体を読み込みました${r.skipped?`(無効な${r.skipped}件はスキップ)`:''}。`; renderAgentPanel(el); } catch(err){ $("#agStat").innerHTML = '<span style="color:#ff8a8a">⚠ 読み込み失敗: '+esc(err.message)+'</span>'; } };
+    rd.onerror = ()=>{ $("#agStat").innerHTML = '<span style="color:#ff8a8a">⚠ ファイルを読めませんでした</span>'; };
+    rd.readAsText(f); e.target.value="";
+  };
+  $("#agDistill").onclick = async ()=>{
+    const desc = $("#agDesc").value.trim(); const st=$("#agStat");
+    if (!desc){ st.textContent="専門分野を入力してください。"; return; }
+    if (!CFG.apiKey){ st.innerHTML='<span style="color:#ffb86b">⚠ 脳(APIキー)が未設定です。⚙設定から無料キーを入れてください。</span>'; return; }
+    if (busy){ st.textContent="処理中です。少し待ってね。"; return; }
+    const btn=$("#agDistill"); btn.disabled=true; st.innerHTML='🧪 蒸留中…(専門家の脳を設計し、Webで最新情報を学習しています)';
+    try {
+      const ag = await distillAgent(desc);
+      setActiveAgent(ag.id);
+      st.innerHTML=`✅ 「${esc(ag.name)}」を蒸留して稼働開始${ag.freshAt?'(最新情報も取込済)':''}。そのまま話しかけてください。`;
+      $("#agDesc").value="";
+      drawList();
+    } catch(e){ st.innerHTML='<span style="color:#ff8a8a">⚠ 蒸留に失敗: '+esc(e.message)+'</span>'; }
+    finally { btn.disabled=false; }
+  };
+}
+
+/* ---------- 身体: 顔(Three.js 3D・WebGL) ---------- */
+// 気分テーブル: 全種類の絵文字で気分を表現
+const MOODS = {
+  idle:     { emoji:"🙂", color:0x5b86e5, brow:0.00, curve:0.08, eye:1.00 },
+  happy:    { emoji:"😊", color:0x49c98a, brow:-0.16,curve:0.16, eye:0.82 },
+  joyful:   { emoji:"😄", color:0x39d39a, brow:-0.22,curve:0.24, eye:0.66 },
+  excited:  { emoji:"🤩", color:0xffc24b, brow:-0.26,curve:0.20, eye:1.18 },
+  love:     { emoji:"😍", color:0xff6b9d, brow:-0.18,curve:0.18, eye:0.90 },
+  curious:  { emoji:"🤨", color:0x6fa8ff, brow:0.20, curve:0.03, eye:1.06 },
+  surprised:{ emoji:"😮", color:0x7fd0ff, brow:-0.30,curve:0.00, eye:1.32, openBase:0.45 },
+  thinking: { emoji:"🤔", color:0x9a86ff, brow:0.24, curve:-0.05,eye:0.94 },
+  worried:  { emoji:"😟", color:0xc28fff, brow:0.30, curve:-0.10,eye:1.00 },
+  sad:      { emoji:"😢", color:0x5f86c7, brow:0.32, curve:-0.18,eye:0.92 },
+  sleepy:   { emoji:"😴", color:0x6b7bb0, brow:0.06, curve:-0.05,eye:0.30 },
+  cool:     { emoji:"😎", color:0x46b6c9, brow:-0.06,curve:0.09, eye:0.88 },
+};
+/* 可愛い声プリセット(雑談用・10種)。ブラウザ音声はpitch/rateで声色を再現、irodoriはpromptでVoiceDesign登録 */
+const VOICE_PRESETS = [
+  { name:"元気な妹",     pitch:1.55, rate:1.12, prompt:"明るく元気いっぱいの少女の声。高めでハキハキ、アニメの妹キャラ風。" },
+  { name:"おっとり少女", pitch:1.30, rate:0.95, prompt:"やわらかくおっとりした少女の声。優しくゆっくり、癒し系。" },
+  { name:"天使ボイス",   pitch:1.42, rate:1.00, prompt:"透明感のある澄んだ少女の声。可憐で天使のよう。" },
+  { name:"ツンデレ",     pitch:1.36, rate:1.16, prompt:"少し強気で早口、でも可愛いツンデレ少女の声。" },
+  { name:"クールお姉さん", pitch:1.06, rate:1.00, prompt:"落ち着いた知的なお姉さんの声。クールで色っぽく可愛い。" },
+  { name:"ロリ系",       pitch:1.72, rate:1.04, prompt:"とても高く幼い少女の声。ロリ系アニメキャラ。" },
+  { name:"ささやき甘え", pitch:1.26, rate:0.90, prompt:"甘くささやくような少女の声。吐息混じりで耳元っぽい。" },
+  { name:"アイドル",     pitch:1.46, rate:1.10, prompt:"キラキラしたアイドルのような明るい少女の声。" },
+  { name:"不思議ちゃん", pitch:1.50, rate:0.92, prompt:"ふわふわした不思議系少女の声。間延び気味でマイペース。" },
+  { name:"猫娘",         pitch:1.62, rate:1.08, prompt:"語尾が可愛い猫っぽい少女の声。ちょっと甘えた感じ、にゃん。" },
+];
+const face = (function(){
+  const cv = $("#face"), moodEl = $("#mood");
+  let mood = "idle", emo = MOODS.idle;
+  let speaking=false, speakEnv=0;
+  let blink=0, nextBlink=0;
+  const gaze={x:0,y:0,tx:0,ty:0,next:0};
+  const cur={ brow:0, curve:0.02, eye:1, open:0, lr:0.35, lg:0.52, lb:0.9 };
+  let head=null;                                   // 後で生成(フォールバック時はnull)
+  let aff=(CFG.affection!=null?CFG.affection:50);  // 好感度0..100
+  const grab={ on:false, tx:0, ty:0, x:0, y:0, vx:0, vy:0 };   // つまむ(ばね)
+  const affEl=$("#aff"), pokeLines={ tap:["なあに?😊","ん?どうしたの🙂","呼んだ?😄","えへへ☺"], drag:["ふふっ、くすぐったいよ〜😊","わっ、びっくりした!😮","もう、いたずらっ子だなあ😄","やさし〜く、ね💕"] };
+  function affColorOf(a){
+    const st=[[0,[90,100,150]],[40,[58,107,216]],[64,[43,192,192]],[82,[57,211,106]],[92,[255,207,74]],[100,[255,127,176]]];   // 青→水色→緑→金→ピンク(常に鮮やか)
+    let lo=st[0],hi=st[st.length-1];
+    for(let i=0;i<st.length-1;i++){ if(a>=st[i][0]&&a<=st[i+1][0]){ lo=st[i];hi=st[i+1];break; } }
+    const t=(a-lo[0])/((hi[0]-lo[0])||1), L=lo[1],H=hi[1];
+    return [L[0]+(H[0]-L[0])*t, L[1]+(H[1]-L[1])*t, L[2]+(H[2]-L[2])*t];
+  }
+  function applyAff(){ const c=affColorOf(aff); if(head) head.material.color.setRGB(c[0]/255,c[1]/255,c[2]/255); if(affEl) affEl.textContent="♥ "+Math.round(aff); }
+  function setAffection(v){ aff=Math.max(0,Math.min(100,v)); CFG.affection=aff; saveCfg(); applyAff(); }
+  function addAffection(d){ setAffection(aff+d); }
+  function setGrab(nx,ny){ grab.on=true; grab.tx=nx; grab.ty=ny; }
+  function endGrab(){ grab.on=false; grab.tx=0; grab.ty=0; }
+  function poked(wasDrag){ addAffection(wasDrag?2:1); setEmotion(aff>70?"love":"happy"); const a=pokeLines[wasDrag?"drag":"tap"]; return a[Math.floor(Math.random()*a.length)]; }
+
+  function showMood(){
+    if(moodEl){ moodEl.textContent=emo.emoji; moodEl.classList.remove("pop"); void moodEl.offsetWidth; moodEl.classList.add("pop"); }
+    if(cv){ const c=emo.color, r=(c>>16)&255,g=(c>>8)&255,b=c&255; cv.parentElement.style.boxShadow=`inset 0 70px 120px -55px rgba(${r},${g},${b},.32)`; }
+  }
+  function setEmotion(k){ if(!MOODS[k]) k="idle"; if(k===mood) return; mood=k; emo=MOODS[k]; showMood(); }
+  function setSpeaking(on){ speaking=on; }
+  function pulse(){ speakEnv=1; }
+
+  const T = window.THREE;
+  if(!T || !cv){ showMood(); return { setEmotion, setSpeaking, pulse, mood:()=>mood, setAffection, addAffection, setGrab, endGrab, poked, affection:()=>aff, is3D:false }; }
+
+  let renderer;
+  try { renderer = new T.WebGLRenderer({ canvas:cv, alpha:true, antialias:true }); }
+  catch(e){ console.warn("WebGL不可・絵文字のみ:", e.message); showMood(); return { setEmotion, setSpeaking, pulse, mood:()=>mood, setAffection, addAffection, setGrab, endGrab, poked, affection:()=>aff, is3D:false }; }
+  renderer.setClearColor(0x000000, 0);
+  if(T.ACESFilmicToneMapping){ renderer.toneMapping=T.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0; }
+
+  const scene=new T.Scene();
+  const cam=new T.PerspectiveCamera(38,1,0.1,100); cam.position.set(0,0,6.2);
+  scene.add(new T.AmbientLight(0x5a6594, 0.7));
+  const key=new T.DirectionalLight(0xffffff,0.7); key.position.set(-2,3,5); scene.add(key);
+  const rim=new T.DirectionalLight(0xa9c2ff,0.45); rim.position.set(3,-1,-4); scene.add(rim);
+  const moodLight=new T.PointLight(0x5b86e5,1.3,30); moodLight.position.set(2.0,1.4,3.8); scene.add(moodLight);
+
+  const headGrp=new T.Group(); scene.add(headGrp);
+  // まるくて柔らかい頭(マット)
+  head=new T.Mesh(new T.SphereGeometry(1.5,64,48),
+    new T.MeshStandardMaterial({ color:0x5470c4, roughness:0.66, metalness:0.04, emissive:0x1a2240, emissiveIntensity:0.3 }));
+  head.scale.set(1.04,1.03,0.97); headGrp.add(head);
+
+  // 目(スクショ準拠: シンプルな黒い瞳のみ)
+  const eyeMat=new T.MeshStandardMaterial({ color:0x10131f, roughness:0.32, metalness:0.0 });
+  const eyes=[];
+  for(const sx of [-1,1]){
+    const eg=new T.Group(); eg.position.set(sx*0.5,0.12,1.36);   // 前面に出して埋もれないように
+    const e=new T.Mesh(new T.SphereGeometry(0.26,28,22), eyeMat); e.scale.set(0.9,1.2,0.6); eg.add(e);
+    headGrp.add(eg); eyes.push({eg,sx});
+  }
+  // 眉(細く・強い感情のときだけ)
+  const browMat=new T.MeshStandardMaterial({ color:0x2a3350, roughness:0.7 });
+  const brows=[];
+  for(const sx of [-1,1]){ const b=new T.Mesh(new T.BoxGeometry(0.38,0.05,0.1), browMat); b.position.set(sx*0.5,0.74,1.28); b.visible=false; headGrp.add(b); brows.push({b,sx}); }
+  // 口(😊風の上向きカーブの笑顔＋発話時に開く口内)
+  const mouthGrp=new T.Group(); mouthGrp.position.set(0,-0.46,1.30); headGrp.add(mouthGrp);
+  const inner=new T.Mesh(new T.SphereGeometry(0.2,24,18), new T.MeshStandardMaterial({color:0x402a36, roughness:0.5})); inner.scale.set(1,0.06,0.45); mouthGrp.add(inner);
+  const smileCurve=new T.QuadraticBezierCurve3(new T.Vector3(-0.24,0.07,0.06), new T.Vector3(0,-0.10,0.12), new T.Vector3(0.24,0.07,0.06));
+  const smile=new T.Mesh(new T.TubeGeometry(smileCurve,20,0.05,8,false), new T.MeshStandardMaterial({color:0x2a1f2b, roughness:0.5}));
+  mouthGrp.add(smile);
+  // 思考パーティクル
+  const dots=new T.Group(); dots.position.set(0,1.95,0.6); headGrp.add(dots);
+  for(let i=0;i<3;i++){ const d=new T.Mesh(new T.SphereGeometry(0.07,12,10), new T.MeshBasicMaterial({color:0x9fb4e6, transparent:true, opacity:0.9})); d.position.x=(i-1)*0.28; dots.add(d); }
+
+  function resize(){ const w=cv.clientWidth||170; renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1)); renderer.setSize(w,w,false); cam.aspect=1; cam.updateProjectionMatrix(); }
+  resize(); window.addEventListener("resize", resize);
+  showMood(); applyAff();
+
+  const t0=performance.now();
+  function frame(now){
+    const t=(now-t0)/1000;
+    if(now>nextBlink){ blink=1; nextBlink=now+2200+Math.random()*3400; }
+    blink=Math.max(0,blink-0.16);
+    if(now>gaze.next){ gaze.tx=(Math.random()*2-1)*0.5; gaze.ty=(Math.random()*2-1)*0.35; gaze.next=now+800+Math.random()*1900; }
+    gaze.x+=(gaze.tx-gaze.x)*0.06; gaze.y+=(gaze.ty-gaze.y)*0.06;
+    cur.brow+=(emo.brow-cur.brow)*0.12; cur.curve+=(emo.curve-cur.curve)*0.12; cur.eye+=(emo.eye-cur.eye)*0.12;
+    speakEnv*=0.86;
+    let openTgt=emo.openBase||0;
+    if(speaking){ const osc=0.5+0.5*Math.sin(t*15+Math.sin(t*7)*1.5); openTgt=0.12+osc*0.5*(0.5+0.5*speakEnv)+Math.random()*0.05; }
+    cur.open+=(openTgt-cur.open)*0.4;
+    const breath=Math.sin(t*1.7)*0.5+0.5;
+    // つまむ(ばね・離すとぷるんと戻る)
+    grab.vx+=((grab.on?grab.tx:0)-grab.x)*0.5; grab.vx*=0.62; grab.x+=grab.vx;
+    grab.vy+=((grab.on?grab.ty:0)-grab.y)*0.5; grab.vy*=0.62; grab.y+=grab.vy;
+    const gm=Math.hypot(grab.x,grab.y), bs=1+breath*0.012;
+    headGrp.scale.set(bs*(1+grab.x*0.12), bs*(1-gm*0.08+grab.y*0.06), bs*(1-gm*0.04));
+    headGrp.position.x=grab.x*0.5; headGrp.position.y=grab.y*0.5;
+    headGrp.rotation.y=gaze.x*0.18+grab.x*0.22+Math.sin(t*0.6)*0.05;
+    headGrp.rotation.x=-gaze.y*0.12-grab.y*0.18+Math.sin(t*0.9)*0.02;
+    const lid=1-blink;
+    eyes.forEach(({eg,sx})=>{ eg.scale.y=Math.max(0.06,cur.eye*lid); eg.position.x=sx*0.5+gaze.x*0.06; eg.position.y=0.12+gaze.y*0.05; });
+    brows.forEach(({b,sx})=>{ b.visible=cur.brow>0.07; b.position.y=0.78-cur.brow*0.4; b.rotation.z=-sx*cur.brow*1.1; });
+    // 口: 感情で笑顔カーブ(上向き=笑顔/下向き=困り)＋発話で口内が開く
+    const sm=(cur.curve>=0?1:-1)*(0.6+Math.abs(cur.curve)*2.6);
+    smile.scale.set(1, sm, 1);
+    inner.scale.set(1, 0.06+cur.open*1.3, 0.45);
+    dots.visible=(mood==="thinking");
+    if(dots.visible) dots.children.forEach((d,i)=>{ d.position.y=Math.sin(t*4-i*0.7)*0.12; d.material.opacity=0.4+0.5*(0.5+0.5*Math.sin(t*4-i*0.7)); });
+    const c=emo.color, r=((c>>16)&255)/255,g=((c>>8)&255)/255,b=(c&255)/255;
+    cur.lr+=(r-cur.lr)*0.08; cur.lg+=(g-cur.lg)*0.08; cur.lb+=(b-cur.lb)*0.08;
+    moodLight.color.setRGB(cur.lr,cur.lg,cur.lb);
+    moodLight.intensity=0.8+(speaking?(0.5+0.5*Math.sin(t*16))*0.5:0)+breath*0.12;
+    head.material.emissive.setRGB(cur.lr*0.10,cur.lg*0.10,cur.lb*0.12);
+    renderer.render(scene,cam);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  return { setEmotion, setSpeaking, pulse, mood:()=>mood, setAffection, addAffection, setGrab, endGrab, poked, affection:()=>aff, is3D:true };
+})();
+
+/* ---------- 声(Web Speech・無料) ---------- */
+function detectEmotion(s){
+  if(!s) return "idle";
+  // 1) 応答中の絵文字を最優先で気分に対応(全種類対応)
+  const emojiMap = [
+    [/🤩|🥳|🔥/, "excited"], [/😍|🥰|💖|❤|♥/, "love"],
+    [/😄|😆|😁|😹|🎉/, "joyful"], [/😊|🙂|😃|☺|😌|👍/, "happy"],
+    [/😎/, "cool"], [/🤔|🧐/, "thinking"], [/🤨|🙃/, "curious"],
+    [/😮|😲|😯|😵|‼|⁉/, "surprised"], [/😟|😥|😓|💦|😬/, "worried"],
+    [/😢|😭|😞|💔/, "sad"], [/😴|💤|🥱/, "sleepy"],
+  ];
+  for(const [re,k] of emojiMap){ if(re.test(s)) return k; }
+  // 2) 日本語キーワード
+  if(/うれし|嬉し|やった|わー|最高|大好き|うわ.*すご/.test(s)) return "joyful";
+  if(/よかった|ありがと|楽し|いいですね|素敵|助か|うれ/.test(s)) return "happy";
+  if(/びっくり|驚|まさか|なんと/.test(s)) return "surprised";
+  if(/ごめん|申し訳|残念|悲し|つら/.test(s)) return "sad";
+  if(/心配|不安|大丈夫かな|うーん/.test(s)) return "worried";
+  if(/考え|検討|うーむ|なるほど|つまり/.test(s)) return "thinking";
+  if(/[?？]/.test(s)) return "curious";
+  return "idle";
+}
+/* ---------- VOICEVOX/AivisSpeech 自動検出(GPU不要・CPUで動くキャラ声TTS) ---------- */
+const VV_CANDIDATES = [
+  { url:"http://127.0.0.1:10101" }, { url:"http://localhost:10101" },   // AivisSpeech
+  { url:"http://127.0.0.1:50021" }, { url:"http://localhost:50021" },   // VOICEVOX
+  { url:"http://127.0.0.1:50032" }, { url:"http://localhost:50032" },   // COEIROINK v2
+  { url:"http://127.0.0.1:50031" },                                      // COEIROINK 旧
+  { url:"http://127.0.0.1:50025" }, { url:"http://localhost:50025" },   // SHAREVOX
+];
+let vvSpeakerCache=null, vvServerName="", vvConnIssue="", vvReachUrl="", vvRetryTimer=null, vvNotified="";
+const VV_ONFILE = (location.protocol === "file:");
+function vvNameFor(u){ if(/:10101/.test(u))return"AivisSpeech"; if(/:50021/.test(u))return"VOICEVOX"; if(/:5003[12]/.test(u))return"COEIROINK"; if(/:50025/.test(u))return"SHAREVOX"; return"TTS"; }
+/* VOICEVOX系(/speakers: id) も COEIROINK系(/v1/speakers: styleId) も吸収 */
+function vvFlatten(speakers){
+  const out=[];
+  for(const sp of (speakers||[])){
+    const spName = sp.name!=null ? sp.name : (sp.speakerName!=null ? sp.speakerName : "話者");
+    for(const st of (sp.styles||[])){
+      const id = st.id!=null ? st.id : st.styleId;
+      const stName = st.name!=null ? st.name : (st.styleName!=null ? st.styleName : "");
+      if(id!=null) out.push({ id:String(id), label: spName + (stName ? " / "+stName : "") });
+    }
+  }
+  return out;
+}
+async function vvFetchJSON(url, ms){
+  const c=new AbortController(); const to=setTimeout(()=>{ try{c.abort();}catch(_){}}, ms);
+  try{ const r=guardResponseSize(await safeFetch(url, { signal:c.signal, cache:"no-store" }, { allowLocal:true })); clearTimeout(to); if(!r.ok) return null; return await r.json(); }
+  catch(e){ clearTimeout(to); return null; }
+}
+/* /speakers(VOICEVOX/AivisSpeech) → /v1/speakers(COEIROINK) の順で話者一覧 */
+async function vvProbe(base, ms=3000){
+  base=base.replace(/\/$/,"");
+  let j=await vvFetchJSON(base+"/speakers", ms);   if(Array.isArray(j)&&j.length){ const f=vvFlatten(j); if(f.length) return f; }
+  j=await vvFetchJSON(base+"/v1/speakers", ms);     if(Array.isArray(j)&&j.length){ const f=vvFlatten(j); if(f.length) return f; }
+  return null;
+}
+/* no-cors で「サーバが居るか」だけ確認(CORSで本文が読めなくても応答すれば在と判定) */
+async function vvReachable(base, ms=2500){
+  base=base.replace(/\/$/,"");
+  for(const path of ["/version","/speakers","/"]){
+    const c=new AbortController(); const to=setTimeout(()=>{ try{c.abort();}catch(_){}}, ms);
+    try{ await safeFetch(base+path, { mode:"no-cors", signal:c.signal, cache:"no-store" }, { allowLocal:true }); clearTimeout(to); return true; }
+    catch(e){ clearTimeout(to); }
+  }
+  return false;
+}
+/* 候補を並列プローブ→最初に読めたサーバへ接続。読めない時は理由を診断(cors/none) */
+async function vvAutoConnect(opts={}){
+  if(!opts.force && CFG.vvAuto===false) return null;
+  const cands=[...new Set([CFG.vvUrl, ...VV_CANDIDATES.map(c=>c.url)].filter(Boolean).map(u=>u.replace(/\/$/,"")))];
+  const probed=await Promise.all(cands.map(u=>vvProbe(u).then(list=>(list&&list.length)?{u,list}:null)));
+  const hit=probed.find(Boolean);
+  if(hit){
+    CFG.vvUrl=hit.u; vvServerName=vvNameFor(hit.u); vvSpeakerCache=hit.list;
+    const ids=new Set(vvSpeakerCache.map(s=>s.id));
+    if(!CFG.vvSpeaker || !ids.has(String(CFG.vvSpeaker))) CFG.vvSpeaker = vvSpeakerCache[0].id;
+    if(CFG.vvSpeakerCalm && !ids.has(String(CFG.vvSpeakerCalm))) CFG.vvSpeakerCalm="";
+    if(opts.switchMode!==false) CFG.ttsMode="voicevox";
+    vvConnIssue=""; vvReachUrl=""; saveCfg();
+    return { name:vvServerName, url:hit.u, speakers:vvSpeakerCache };
+  }
+  const reached=await Promise.all(cands.map(u=>vvReachable(u).then(ok=>ok?u:null)));
+  vvReachUrl=reached.find(Boolean)||""; vvConnIssue = vvReachUrl ? "cors" : "none";
+  return null;
+}
+function vvIssueMsg(){
+  if(vvConnIssue==="cors") return `🔈 ${vvNameFor(vvReachUrl)}は起動中です。でもブラウザのCORS制限で繋げません。${VV_ONFILE?"同じフォルダの AUTONOMA.bat から開き直してね(http配信でCORS回避→自動で繋がります)。":"AUTONOMA.bat から開くか、エンジンをCORS許可で起動してね。"}`;
+  if(vvConnIssue==="none") return `🔈 TTSエンジンが見つかりません。AivisSpeech / VOICEVOX / COEIROINK のどれかを起動してね。${VV_ONFILE?" 起動済みなら AUTONOMA.bat から開くと確実です。":""}`;
+  return "";
+}
+/* 左下バッジ: 接続状態を常時表示＋クリックで即再接続 */
+function vvBadge(){
+  let el=document.getElementById("ttsBadge");
+  if(!el){ el=document.createElement("div"); el.id="ttsBadge"; el.title="クリックで再接続";
+    el.style.cssText="position:fixed;left:8px;bottom:8px;z-index:60;font-family:inherit;font-size:11px;line-height:1.4;padding:5px 9px;border-radius:8px;cursor:pointer;background:rgba(12,16,24,.92);border:1px solid #2a3550;color:#bfe;max-width:66vw";
+    el.onclick=()=>{ el.textContent="🔈 接続中…"; vvAutoConnect({force:true,switchMode:true}).then(r=>{ if(r) sys(`🔈 ${r.name} に接続しました(話者${r.speakers.length}種)。`); else { const m=vvIssueMsg(); if(m) sys(m); } vvBadge(); }); };
+    document.body.appendChild(el); }
+  if(vvSpeakerCache){ el.style.borderColor="#39c5d6"; el.style.color="#bfe"; el.textContent=`🔈 ${vvServerName} 接続済み (${vvSpeakerCache.length}話者)`; }
+  else if(vvConnIssue==="cors"){ el.style.borderColor="#e0b24a"; el.style.color="#ffe9b0"; el.textContent="🔈 エンジン検出・CORS未接続 → AUTONOMA.batで開く(クリックで再試行)"; }
+  else { el.style.borderColor="#c2654a"; el.style.color="#ffd6c8"; el.textContent="🔈 TTS未接続(エンジンを起動→クリック)"; }
+}
+/* 自動接続ループ: エンジンを後から起動しても繋がるよう定期再試行 */
+async function vvAutoConnectLoop(){
+  if(CFG.vvAuto===false && CFG.ttsMode!=="voicevox") return;
+  const r=await vvAutoConnect({switchMode:true});
+  vvBadge();
+  if(r){ if(vvNotified!=="ok"){ sys(`🔈 ${r.name} に自動接続しました(話者${r.speakers.length}種・キャラ声で喋ります)。`); vvNotified="ok"; } return; }
+  if(vvConnIssue && vvNotified!==vvConnIssue){ const m=vvIssueMsg(); if(m) sys(m); vvNotified=vvConnIssue; }
+  clearTimeout(vvRetryTimer); vvRetryTimer=setTimeout(vvAutoConnectLoop, 4000);
+}
+const voice = (function(){
+  let on = (CFG.voice!==false);
+  const synth = ("speechSynthesis" in window) ? window.speechSynthesis : null;
+  let jpVoice=null, jpVoiceMale=null, revertT=null, curAudio=null, abortTts=null, seq=0, speakGen=0;
+  function pick(){ if(!synth) return; const vs=synth.getVoices(); jpVoice = vs.find(v=>/ja[-_]?JP/i.test(v.lang)) || vs.find(v=>/^ja/i.test(v.lang)) || null;
+    jpVoiceMale = vs.find(v=>/^ja/i.test(v.lang) && /male|男|otoya|ichiro|daichi|keita/i.test(v.name)) || jpVoice; }
+  if(synth){ pick(); synth.onvoiceschanged = pick; }
+  const splitParts = (clean)=> clean.split(/(?<=[。!?！?\n])|(?<=\.)(?=\s)/).map(s=>s.trim()).filter(Boolean);   // 「.」は空白が続く時だけ文末扱い(小数を壊さない)
+  const stripEmoji = (s)=> s.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2300}-\u{23FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{2122}\u{2139}\u{2764}\u{2B50}\u{2B55}]/gu,"").replace(/\s{2,}/g," ").trim();
+  /* 読み上げ正規化: 絵文字/装飾記号を除去、意味のある記号は語に、英語/略語はカタカナ、全角→半角 */
+  const TTS_LETTERS={A:"エー",B:"ビー",C:"シー",D:"ディー",E:"イー",F:"エフ",G:"ジー",H:"エイチ",I:"アイ",J:"ジェイ",K:"ケー",L:"エル",M:"エム",N:"エヌ",O:"オー",P:"ピー",Q:"キュー",R:"アール",S:"エス",T:"ティー",U:"ユー",V:"ブイ",W:"ダブリュー",X:"エックス",Y:"ワイ",Z:"ゼット"};
+  const TTS_WORDS={AUTONOMA:"オートノマ",AI:"エーアイ",OK:"オーケー",NG:"エヌジー",PC:"ピーシー",URL:"ユーアールエル",API:"エーピーアイ",CPU:"シーピーユー",GPU:"ジーピーユー",TTS:"ティーティーエス",LLM:"エルエルエム",OS:"オーエス",ID:"アイディー",USB:"ユーエスビー",SNS:"エスエヌエス",HP:"エイチピー",VOICEVOX:"ボイスボックス",AIVISSPEECH:"アイビススピーチ",COEIROINK:"コエイロインク",SHAREVOX:"シェアボックス",CLAUDE:"クロード",GEMINI:"ジェミニ",GOOGLE:"グーグル",YOUTUBE:"ユーチューブ",GITHUB:"ギットハブ",HTML:"エイチティーエムエル",CSS:"シーエスエス",JS:"ジェイエス",WIFI:"ワイファイ",WEB:"ウェブ",APP:"アプリ",HELLO:"ハロー",HI:"ハイ",HELP:"ヘルプ",YES:"イエス",NO:"ノー",THANKS:"サンキュー",THANKYOU:"サンキュー",BYE:"バイ",GOOD:"グッド",NICE:"ナイス",START:"スタート",STOP:"ストップ",TEST:"テスト",VERSION:"バージョン",ERROR:"エラー",MODE:"モード",GAME:"ゲーム"};
+  const ttsKana=(core)=>{ const up=(core||"").toUpperCase().replace(/[^A-Z]/g,""); if(!up) return ""; if(TTS_WORDS[up]) return TTS_WORDS[up]; return [...up].map(c=>TTS_LETTERS[c]||"").join(""); };
+  const ttsNormalize=(s)=>{
+    s=stripEmoji(s);
+    s=s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));   // 全角英数→半角
+    s=s.replace(/[%％]/g,"パーセント").replace(/[&＆]/g,"アンド").replace(/[=＝]/g,"イコール").replace(/[@＠]/g,"アット").replace(/[+＋]/g,"プラス");
+    s=s.replace(/[*_~#^|<>`/\\\[\]{}()（）【】〈〉"'’“”]/g," ");                          // 装飾記号を除去(。、！？「」は残す)
+    s=s.replace(/[A-Za-z][A-Za-z'’]*/g, m=>ttsKana(m));                                     // 英単語/略語→カナ(数字はエンジンが読む)
+    return s.replace(/\s{2,}/g," ").trim();
+  };
+  // 雑談=可愛い声 / 長文・真面目=低音(女子or男子)を自動判定
+  function styleFor(t){ const sent=(t.match(/[。.!?！?\n]/g)||[]).length; return (t.length>=60 || sent>=3) ? "calm" : "cute"; }
+  function stop(){ clearTimeout(revertT); seq++; speakGen++; if(synth) synth.cancel(); if(curAudio){ try{curAudio.pause();}catch(e){} curAudio=null; } if(abortTts){ try{abortTts.abort();}catch(e){} abortTts=null; } face.setSpeaking(false); }
+  /* irodori-TTS(OpenAI /v1/audio/speech 互換)・emojiで感情指定が効く */
+  async function speakIrodori(clean, style){
+    const my=++seq; face.setSpeaking(true);
+    const parts=splitParts(clean); if(!parts.length){ face.setSpeaking(false); return; }
+    const vName = (style==="calm") ? (CFG.ttsVoiceCalm||CFG.ttsVoice||"") : (CFG.ttsVoice||"");
+    const instr = (style==="calm") ? "落ち着いた低めの声で、ゆっくり丁寧に話す。" : ((VOICE_PRESETS[CFG.voicePreset]||VOICE_PRESETS[0]).prompt);   // VoiceDesign用の声指定
+    for(let pi=0; pi<parts.length; pi++){
+      if(my!==seq) return;
+      try{
+        abortTts=new AbortController();
+        const res=guardResponseSize(await safeFetch(CFG.ttsUrl, { method:"POST", signal:abortTts.signal,
+          headers:Object.assign({"Content-Type":"application/json"}, CFG.ttsKey?{"Authorization":"Bearer "+CFG.ttsKey}:{}),
+          body:JSON.stringify({ model:CFG.ttsModel||"irodori-tts-500m-v3-voicedesign", input:parts[pi], voice:vName, instructions:instr, response_format:"mp3" }) }, { allowLocal:true }));
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const buf=await res.arrayBuffer(); if(my!==seq) return;
+        const url=URL.createObjectURL(new Blob([buf],{type:"audio/mpeg"}));
+        face.pulse();
+        await new Promise((resolve)=>{
+          const a=new Audio(url); curAudio=a;
+          const done=()=>{ URL.revokeObjectURL(url); resolve(); };
+          a.onended=a.onerror=done;
+          a.play().catch(done);
+        });
+      }catch(e){
+        if(my!==seq) return;
+        sys("🔈 irodori-TTSに接続できませんでした(⚙設定のURLを確認)。ブラウザ音声に切替。");
+        speakWeb(parts.slice(pi).join(" "), style); return;
+      }
+    }
+    if(my===seq){ face.setSpeaking(false); face.setEmotion("idle"); }
+  }
+  /* VOICEVOX / AivisSpeech 互換(GPU不要・無料・キャラ声)・audio_query→synthesis */
+  async function speakVoicevox(clean, style){
+    const my=++seq; face.setSpeaking(true);
+    const parts=splitParts(clean).map(t=>ttsNormalize(t)).filter(Boolean);
+    if(!parts.length){ face.setSpeaking(false); return; }
+    const base=safeUrl(CFG.vvUrl||"http://localhost:50021", { allowLocal:true }).replace(/\/$/,"");
+    const sp = (style==="calm" && CFG.vvSpeakerCalm) ? CFG.vvSpeakerCalm : (CFG.vvSpeaker||"3");
+    const ac=new AbortController(); abortTts=ac;
+    // 1文の合成(audio_query→synthesis)。失敗/中断はnull
+    const make=(txt)=> (async()=>{
+      try{
+        const qr=await safeFetch(`${base}/audio_query?speaker=${encodeURIComponent(sp)}&text=${encodeURIComponent(txt)}`, { method:"POST", signal:ac.signal }, { allowLocal:true });
+        if(!qr.ok) return null;
+        const q=await qr.json();
+        if(style==="calm"){ q.pitchScale=(q.pitchScale||0)-0.04; q.speedScale=(q.speedScale||1)*0.97; }
+        else { q.pitchScale=(q.pitchScale||0)+0.03; q.speedScale=(q.speedScale||1)*1.04; q.intonationScale=(q.intonationScale||1)*1.1; }
+        const sr=guardResponseSize(await safeFetch(`${base}/synthesis?speaker=${encodeURIComponent(sp)}`, { method:"POST", signal:ac.signal, headers:{"Content-Type":"application/json"}, body:JSON.stringify(q) }, { allowLocal:true }));
+        if(!sr.ok) return null;
+        return await sr.arrayBuffer();
+      }catch(e){ return null; }
+    })();
+    // 先読みパイプライン: 今の文を再生中に次の文を合成してラグを消す
+    let nextP=make(parts[0]);
+    for(let i=0;i<parts.length;i++){
+      if(my!==seq) return;
+      const cur=nextP;
+      nextP = (i+1<parts.length) ? make(parts[i+1]) : null;   // 次の文を先に合成開始
+      const buf=await cur;
+      if(my!==seq) return;                                     // 中断(stop/新発話)なら無音で抜ける
+      if(!buf){ sys("🔈 VOICEVOX/AivisSpeechに接続できませんでした(起動とポート/URLを確認)。ブラウザ音声に切替。"); speakWeb(parts.slice(i).join(" "), style); return; }
+      const url=URL.createObjectURL(new Blob([buf],{type:"audio/wav"})); face.pulse();
+      await new Promise((res)=>{
+        const a=new Audio(url); curAudio=a;
+        const done=()=>{ URL.revokeObjectURL(url); res(); };
+        a.onended=a.onerror=done;
+        a.play().catch(done);
+      });
+    }
+    if(my===seq){ face.setSpeaking(false); face.setEmotion("idle"); }
+  }
+  function speakWeb(clean, style){
+    if(!synth){ face.setSpeaking(false); return; }
+    synth.cancel();
+    const parts=splitParts(clean); if(!parts.length){ face.setSpeaking(false); return; }
+    face.setSpeaking(true);
+    const calm = style==="calm";
+    const my=++seq; let i=0;
+    const next=()=>{
+      if(my!==seq) return;
+      if(i>=parts.length){ face.setSpeaking(false); face.setEmotion("idle"); return; }
+      const txt=ttsNormalize(parts[i++]); if(!txt){ return next(); }   // 絵文字/記号除去・英語カナ化
+      const u=new SpeechSynthesisUtterance(txt);
+      const v = calm ? (jpVoiceMale||jpVoice) : jpVoice; if(v) u.voice=v;
+      const pr = VOICE_PRESETS[CFG.voicePreset] || VOICE_PRESETS[0];
+      u.lang="ja-JP"; u.rate = calm?0.98:pr.rate; u.pitch = calm?0.8:pr.pitch;   // 雑談=選択プリセットの可愛い声 / 長文真面目=低音
+      u.onboundary=()=>face.pulse(); u.onend=next; u.onerror=next;
+      try{ synth.speak(u); }catch(e){ next(); }
+    };
+    next();
+  }
+  /* ====== 多言語: 文ごとに言語判定→日本語は設定の方式(VOICEVOX等)、他言語はネイティブWeb Speech(主要20言語) ====== */
+  const LANG_BCP={ en:"en-US", ja:"ja-JP", zh:"zh-CN", ko:"ko-KR", es:"es-ES", fr:"fr-FR", de:"de-DE", it:"it-IT", pt:"pt-BR", ru:"ru-RU", ar:"ar-SA", hi:"hi-IN", id:"id-ID", th:"th-TH", vi:"vi-VN", tr:"tr-TR", nl:"nl-NL", pl:"pl-PL", sv:"sv-SE", uk:"uk-UA" };
+  function detectLatin(s){
+    const t=" "+s.toLowerCase().replace(/[^a-zà-ÿğışçœ]+/g," ")+" ";
+    if(/[ğşı]/.test(s)) return "tr";
+    if(/[ñ¡¿]/.test(s)) return "es";
+    if(/[ąćęłńśźż]/.test(s)) return "pl";
+    if(/[ãõ]/.test(s)) return "pt";
+    if(/[ß]/.test(s)) return "de";
+    const has=(ws)=> ws.some(w=> t.includes(" "+w+" "));
+    if(has(["the","and","you","are","what","this","that","with","have","your","not","hello","hi"])) return "en";
+    if(has(["que","una","con","por","para","pero","muy","hola","cómo","está","gracias","los","las"])) return "es";
+    if(has(["les","des","une","est","vous","pour","avec","pas","bonjour","merci","comment","ça"])) return "fr";
+    if(has(["der","die","das","und","ist","nicht","ein","ich","sie","auch","wie","guten","danke"])) return "de";
+    if(has(["che","sono","per","ciao","una","gli","anche","grazie","sei","molto"])) return "it";
+    if(has(["não","com","para","você","obrigado","uma","então","muito"])) return "pt";
+    if(has(["yang","saya","tidak","dengan","untuk","adalah","ini","itu","terima"])) return "id";
+    if(has(["het","een","niet","voor","dat","hoe","ik","jij","bedankt"])) return "nl";
+    if(has(["och","är","det","att","inte","jag","med","för","hej","tack"])) return "sv";
+    if(has(["bir","için","değil","ben","sen","ile","çok","merhaba","nasıl","teşekkür"])) return "tr";
+    return "en";
+  }
+  function detectLang(s){
+    if(/[぀-ヿ]/.test(s)) return "ja";
+    if(/[가-힣]/.test(s)) return "ko";
+    if(/[฀-๿]/.test(s)) return "th";
+    if(/[؀-ۿ]/.test(s)) return "ar";
+    if(/[ऀ-ॿ]/.test(s)) return "hi";
+    if(/[Ѐ-ӿ]/.test(s)) return /[іїєґ]/i.test(s) ? "uk" : "ru";
+    if(/[一-鿿]/.test(s)) return "zh";
+    if(/[a-zA-Zà-ÿ]/.test(s)) return detectLatin(s);
+    return "ja";
+  }
+  function segmentByLang(clean){
+    const parts=splitParts(clean), segs=[];
+    for(const part of parts){
+      const lang=detectLang(part), last=segs[segs.length-1];
+      if(last && last.lang===lang) last.text += (lang==="ja"?"":" ")+part;
+      else segs.push({ lang, text:part });
+    }
+    return segs.length ? segs : [{ lang:detectLang(clean), text:clean }];
+  }
+  function pickVoice(bcp){
+    if(!synth) return null;
+    const vs=synth.getVoices(), code=bcp.slice(0,2).toLowerCase();
+    return vs.find(v=>v.lang && v.lang.toLowerCase()===bcp.toLowerCase())
+        || vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(code)) || null;
+  }
+  const ttsCleanLite=(s)=> stripEmoji(s).replace(/[*_~#^`|<>\[\]{}]/g," ").replace(/\s{2,}/g," ").trim();
+  /* Web Speech(日本語=プリセット声 / 他言語=ネイティブ声)。Promiseで順次再生 */
+  function webSpeakP(clean, bcp, calm){
+    return new Promise((resolve)=>{
+      if(!synth){ resolve(); return; }
+      const ja=bcp.startsWith("ja");
+      const parts=splitParts(clean).map(t=> ja?ttsNormalize(t):ttsCleanLite(t)).filter(Boolean);
+      if(!parts.length){ resolve(); return; }
+      const my=++seq; face.setSpeaking(true);
+      const v=pickVoice(bcp), pr=VOICE_PRESETS[CFG.voicePreset]||VOICE_PRESETS[0]; let i=0;
+      const next=()=>{
+        if(my!==seq){ resolve(); return; }
+        if(i>=parts.length){ resolve(); return; }
+        const u=new SpeechSynthesisUtterance(parts[i++]);
+        if(v) u.voice=v; u.lang=v?v.lang:bcp;
+        if(ja){ u.rate=calm?0.98:pr.rate; u.pitch=calm?0.8:pr.pitch; } else { u.rate=1.0; u.pitch=1.05; }
+        u.onboundary=()=>face.pulse(); u.onend=next; u.onerror=next;
+        try{ synth.speak(u); }catch(e){ next(); }
+      };
+      next();
+    });
+  }
+  function speakJaP(clean, style){
+    if(CFG.ttsMode==="irodori" && CFG.ttsUrl) return speakIrodori(clean, style);
+    if(CFG.ttsMode==="voicevox") return speakVoicevox(clean, style);
+    return webSpeakP(clean, "ja-JP", style==="calm");
+  }
+  async function runSegments(segs, style, gen){
+    for(const seg of segs){
+      if(gen!==speakGen) return;
+      if(seg.lang==="ja") await speakJaP(seg.text, style);
+      else await webSpeakP(seg.text, LANG_BCP[seg.lang]||seg.lang, false);   // 他言語はネイティブ発音
+    }
+    if(gen===speakGen){ face.setSpeaking(false); face.setEmotion("idle"); }
+  }
+  function speak(text){
+    const clean=(text||"").replace(/\(\(SEARCH:.*?\)\)/g,"").replace(/[*_`#>]/g,"").trim();
+    face.setEmotion(detectEmotion(clean));
+    if(!on || !clean){ clearTimeout(revertT); revertT=setTimeout(()=>face.setEmotion("idle"),2400); return; }
+    stop();
+    const gen=++speakGen;
+    runSegments(segmentByLang(clean), styleFor(clean), gen);
+  }
+  function toggle(){ on=!on; CFG.voice=on; saveCfg(); if(!on) stop(); return on; }
+  return { speak, stop, toggle, isOn:()=>on, styleFor, ttsNormalize, detectLang, segmentByLang };
+})();
+$("#voiceBtn").onclick = ()=>{ const on=voice.toggle(); $("#voiceBtn").textContent = `🔊 声: ${on?"ON":"OFF"}`; };
+/* 顔を「つまむ/つつく」: ドラッグで引っぱる・離すとぷるん。好感度が上がりリアクション */
+(function(){
+  const cv=$("#face"); if(!cv) return;
+  let pid=null, dx0=0, dy0=0, moved=false;
+  const norm=(e)=>{ const r=cv.getBoundingClientRect(); return [((e.clientX-r.left)/r.width)*2-1, -(((e.clientY-r.top)/r.height)*2-1)]; };
+  cv.addEventListener("pointerdown",(e)=>{ pid=e.pointerId; try{cv.setPointerCapture(pid);}catch(_){} const [nx,ny]=norm(e); dx0=nx;dy0=ny;moved=false; face.setGrab(nx,ny); });
+  cv.addEventListener("pointermove",(e)=>{ if(e.pointerId!==pid) return; const [nx,ny]=norm(e); if(Math.hypot(nx-dx0,ny-dy0)>0.08) moved=true; face.setGrab(nx,ny); });
+  const up=(e)=>{ if(pid===null||(e.pointerId!=null&&e.pointerId!==pid)) return; pid=null; face.endGrab(); const line=face.poked(moved); if(line) voice.speak(line); };
+  cv.addEventListener("pointerup",up); cv.addEventListener("pointercancel",up); cv.addEventListener("pointerleave",up);
+})();
+
+/* ---------- 起動 ---------- */
+$("#webBtn").textContent = `🌐 取り込み: ${CFG.web?"ON":"OFF"}`;
+$("#voiceBtn").textContent = `🔊 声: ${CFG.voice!==false?"ON":"OFF"}`;
+$("#emojiBtn").textContent = `🐴 絵文字: ${CFG.emoji!==false?"ON":"OFF"}`;
+updateProvLabel();
+updateAgentChip();   // 蒸留エージェントが稼働中なら表示
+updateAIModeBtn();
+learnWritingSkills();   // stop-slop / taste-skill をRAG知識へ学習(初回のみ)
+if (CFG.clearOnLoad) { history=[]; saveHist(); }   // 起動時に会話履歴を消去(設定)
+renderHistory();
+scheduleIngest();
+fetchCloudFeed();
+/* 起動時: ローカルTTS(AivisSpeech/VOICEVOX)を自動検出して接続 */
+(async ()=>{ try{ if(CFG.vvAuto!==false && CFG.ttsMode==="voicevox"){ vvBadge(); vvAutoConnectLoop(); } }catch(e){} })();
+const DEBUG_HOOK = false;
+const publicCfg = ()=> {
+  const copy = Object.assign({}, CFG);
+  copy.apiKey = CFG.apiKey ? "(set)" : "";
+  copy.ttsKey = CFG.ttsKey ? "(set)" : "";
+  return copy;
+};
+if (DEBUG_HOOK) {
+  window.__mind = Object.freeze({
+    ask, webSearch, ingest, fetchCloudFeed, reflect, face, voice, detectEmotion, emojify,
+    vvAutoConnect, vvProbe, vvReachable,
+    get cfg(){ return publicCfg(); },
+    get history(){ return history.slice(-10); },
+    get worldMem(){ return worldMem.slice(-10); },
+    get learned(){ return learned; },
+    get agents(){ return agents.map(a=>({ id:a.id, name:a.name, specialty:a.specialty, created:a.created })); },
+    exportAgents, importAgentsFromText, cloneAgent, sanitizeAgent,
+    slopScan, designBriefScan, designProposalLocal, learnWritingSkills, SLOP_RULES, TASTE_RULES, curTemp
+  });
+} else {
+  Object.defineProperty(window, "__mind", {
+    value: Object.freeze({ secure:true, message:"Debug hook disabled." }),
+    configurable:false,
+    writable:false
+  });
+}
+</script>
+</body>
+</html>
